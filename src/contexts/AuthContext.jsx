@@ -2,6 +2,7 @@ import { createContext, useContext, useEffect, useState } from 'react';
 import { 
   signInWithPopup, 
   GoogleAuthProvider, 
+  signInAnonymously,
   signOut, 
   onAuthStateChanged
 } from 'firebase/auth';
@@ -21,6 +22,7 @@ export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [isConnecting, setIsConnecting] = useState(false);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
@@ -39,6 +41,8 @@ export const AuthProvider = ({ children }) => {
   const signInWithGoogle = async () => {
     try {
       setError(null);
+      setIsConnecting(true);
+      
       const provider = new GoogleAuthProvider();
       provider.addScope('email');
       provider.addScope('profile');
@@ -47,8 +51,59 @@ export const AuthProvider = ({ children }) => {
       return result.user;
     } catch (error) {
       console.error('Google sign-in failed:', error);
-      setError(error.message);
-      throw error;
+      
+      // Handle specific Firebase auth errors
+      let errorMessage = 'Sign in failed. Please try again.';
+      switch (error.code) {
+        case 'auth/popup-closed-by-user':
+          errorMessage = 'Sign in was cancelled.';
+          break;
+        case 'auth/popup-blocked':
+          errorMessage = 'Pop-up was blocked. Please allow pop-ups and try again.';
+          break;
+        case 'auth/network-request-failed':
+          errorMessage = 'Network error. Please check your connection and try again.';
+          break;
+        case 'auth/too-many-requests':
+          errorMessage = 'Too many attempts. Please wait a moment and try again.';
+          break;
+        default:
+          errorMessage = error.message || errorMessage;
+      }
+      
+      setError(errorMessage);
+      throw new Error(errorMessage);
+    } finally {
+      setIsConnecting(false);
+    }
+  };
+
+  const signInAnonymous = async () => {
+    try {
+      setError(null);
+      setIsConnecting(true);
+      
+      const result = await signInAnonymously(auth);
+      return result.user;
+    } catch (error) {
+      console.error('Anonymous sign-in failed:', error);
+      
+      let errorMessage = 'Guest sign in failed. Please try again.';
+      switch (error.code) {
+        case 'auth/operation-not-allowed':
+          errorMessage = 'Guest access is not enabled. Please contact support.';
+          break;
+        case 'auth/network-request-failed':
+          errorMessage = 'Network error. Please check your connection and try again.';
+          break;
+        default:
+          errorMessage = error.message || errorMessage;
+      }
+      
+      setError(errorMessage);
+      throw new Error(errorMessage);
+    } finally {
+      setIsConnecting(false);
     }
   };
 
@@ -63,13 +118,19 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  const clearError = () => setError(null);
+
   const value = {
     user,
     loading,
     error,
+    isConnecting,
     signInWithGoogle,
+    signInAnonymous,
     signOutUser,
-    isAuthenticated: !!user
+    clearError,
+    isAuthenticated: !!user,
+    isAnonymous: user?.isAnonymous || false
   };
 
   return (
