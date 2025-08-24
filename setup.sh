@@ -401,7 +401,7 @@ EOF
 install_dependencies() {
     log "INFO" "Installing npm dependencies..."
     
-    if npm install; then
+    if npm install --legacy-peer-deps; then
         log "SUCCESS" "Dependencies installed successfully"
     else
         log "ERROR" "Failed to install dependencies"

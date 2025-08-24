@@ -1,6 +1,22 @@
 // Jest setup file for testing
 import '@testing-library/jest-dom';
 
+// Polyfills for Jest environment
+import { TextEncoder, TextDecoder } from 'util';
+
+global.TextEncoder = TextEncoder;
+global.TextDecoder = TextDecoder;
+
+// Polyfill fetch for Jest environment
+import 'whatwg-fetch';
+
+// Mock firebase config to avoid import.meta.env parsing issues
+jest.mock('./firebase/config', () => ({
+  auth: {},
+  db: {},
+  default: {}
+}));
+
 // Mock window.matchMedia
 Object.defineProperty(window, 'matchMedia', {
   writable: true,

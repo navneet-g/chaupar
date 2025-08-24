@@ -396,7 +396,7 @@ VITE_DEBUG_MODE=true
         try:
             self.log("Installing npm dependencies...")
             
-            result = subprocess.run(['npm', 'install'], capture_output=True, text=True)
+            result = subprocess.run(['npm', 'install', '--legacy-peer-deps'], capture_output=True, text=True)
             
             if result.returncode == 0:
                 self.log("Dependencies installed successfully")
