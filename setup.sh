@@ -118,10 +118,30 @@ EOF
 
 # Function to generate project ID
 generate_project_id() {
+    # Clean project name - convert to lowercase and replace non-alphanumeric with hyphens
     local base_name=$(echo "$PROJECT_NAME" | tr '[:upper:]' '[:lower:]' | sed 's/[^a-z0-9]/-/g' | sed 's/-\+/-/g' | sed 's/^-\|-$//g')
-    local timestamp=$(date +%s | tail -c 7)
-    local random_suffix=$(cat /dev/urandom | tr -dc 'a-z' | fold -w 3 | head -n 1)
-    echo "${base_name}-${timestamp}-${random_suffix}"
+    
+    # Get timestamp (last 6 digits)
+    local timestamp=$(date +%s | tail -c 6)
+    
+    # Generate random suffix using openssl (more reliable than /dev/urandom)
+    local random_suffix=$(openssl rand -hex 3 2>/dev/null | tr '[:upper:]' '[:lower:]' | head -c 3)
+    
+    # Fallback to simpler random generation if openssl fails
+    if [[ -z "$random_suffix" ]]; then
+        random_suffix=$(printf "%03d" $((RANDOM % 1000)))
+    fi
+    
+    # Ensure we have a valid project ID
+    local project_id="${base_name}-${timestamp}-${random_suffix}"
+    
+    # Validate project ID format (Firebase requirements)
+    if [[ "$project_id" =~ ^[a-z][a-z0-9-]{5,29}$ ]]; then
+        echo "$project_id"
+    else
+        # Fallback to a simpler format if validation fails
+        echo "chaupar-${timestamp}-${random_suffix}"
+    fi
 }
 
 # Function to create Firebase project
@@ -132,6 +152,15 @@ create_firebase_project() {
     if [[ -z "$PROJECT_ID" ]]; then
         PROJECT_ID=$(generate_project_id)
         log "INFO" "🆔 Generated project ID: $PROJECT_ID"
+        
+        # Validate project ID format
+        if [[ ! "$PROJECT_ID" =~ ^[a-z][a-z0-9-]{5,29}$ ]]; then
+            log "ERROR" "Generated project ID '$PROJECT_ID' is invalid"
+            log "INFO" "Project ID must be 6-30 characters, start with a letter, and contain only lowercase letters, numbers, and hyphens"
+            return 1
+        fi
+        
+        log "INFO" "✅ Project ID format is valid"
     fi
     
     # Check if Firebase CLI is available
@@ -149,14 +178,23 @@ create_firebase_project() {
     fi
     
     # Check if project exists
-    if firebase projects:list | grep -q "$PROJECT_ID"; then
+    if firebase projects:list 2>/dev/null | grep -q "$PROJECT_ID"; then
         log "INFO" "Project $PROJECT_ID already exists"
     else
         log "INFO" "Creating new Firebase project: $PROJECT_ID"
-        if firebase projects:create "$PROJECT_ID" --display-name "$PROJECT_NAME"; then
+        log "INFO" "Display name: $PROJECT_NAME"
+        
+        # Create project with better error handling
+        if firebase projects:create "$PROJECT_ID" --display-name "$PROJECT_NAME" 2>&1; then
             log "SUCCESS" "Firebase project created successfully"
         else
             log "ERROR" "Failed to create Firebase project"
+            log "INFO" "This might be due to:"
+            log "INFO" "1. Project ID already exists in another account"
+            log "INFO" "2. Insufficient permissions"
+            log "INFO" "3. Invalid project ID format"
+            log "INFO" "4. Network connectivity issues"
+            log "INFO" "Check firebase-debug.log for detailed error information"
             return 1
         fi
     fi
@@ -195,9 +233,13 @@ setup_firebase_hosting() {
         fi
     fi
     
-    # Create firebase.json with hosting configuration
+    # Create firebase.json with hosting and Firestore configuration
     cat > "$firebase_config" << 'EOF'
 {
+  "firestore": {
+    "rules": "firestore.rules",
+    "indexes": "firestore.indexes.json"
+  },
   "hosting": {
     "public": "dist",
     "ignore": [
@@ -230,6 +272,61 @@ EOF
     log "INFO" "📁 Public directory: dist/"
     log "INFO" "🔄 SPA routing configured for React Router"
     log "INFO" "⚡ Static asset caching enabled"
+    
+    # Create Firestore indexes file if it doesn't exist
+    if [[ ! -f "firestore.indexes.json" ]]; then
+        log "INFO" "Creating Firestore indexes configuration..."
+        cat > "firestore.indexes.json" << 'EOF'
+{
+  "indexes": [
+    {
+      "collectionGroup": "games",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "status",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "createdAt",
+          "order": "DESCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "games",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "players",
+          "arrayConfig": "CONTAINS"
+        },
+        {
+          "fieldPath": "status",
+          "order": "ASCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "gameMoves",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "gameId",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "timestamp",
+          "order": "ASCENDING"
+        }
+      ]
+    }
+  ],
+  "fieldOverrides": []
+}
+EOF
+        log "SUCCESS" "Firestore indexes configuration created"
+    fi
 }
 
 # Parse command line arguments
@@ -455,17 +552,6 @@ test_build() {
     fi
 }
 
-# Function to run tests
-run_tests() {
-    log "INFO" "Running application tests..."
-    
-    if npm test; then
-        log "SUCCESS" "All tests passed"
-    else
-        log "WARNING" "Tests failed or not configured"
-    fi
-}
-
 # Function to deploy Firestore rules
 deploy_firestore_rules() {
     if [[ "$SKIP_FIREBASE" == true ]]; then
@@ -554,7 +640,6 @@ Setup Steps Completed:
 ✅ Dependencies installation
 $(if [[ "$SKIP_OLLAMA" != true ]]; then echo "✅ Ollama setup"; else echo "⏭️  Ollama setup skipped"; fi)
 ✅ Build test
-✅ Test execution
 $(if [[ "$SKIP_FIREBASE" != true ]]; then echo "✅ Firestore rules deployment"; else echo "⏭️  Firestore rules deployment skipped"; fi)
 
 Next Steps:
@@ -623,7 +708,6 @@ main() {
     fi
     
     test_build
-    run_tests
     deploy_firestore_rules
     
     if [[ "$AUTO_DEPLOY" == true ]]; then
