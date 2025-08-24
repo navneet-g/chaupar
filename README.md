@@ -29,17 +29,17 @@ Chaupar is an ancient Indian board game that combines strategy, luck, and skill:
 
 ### Prerequisites
 
-- Node.js (v14 or higher)
+- Node.js (v16 or higher)
 - npm or yarn
 - Firebase account (for multiplayer functionality)
 - **For AI Mode**: Ollama (local) or OpenAI API key
 
-### Installation
+### Quick Setup
 
 1. **Clone the repository**
    ```bash
    git clone <repository-url>
-   cd chaupar-game
+   cd chaupar
    ```
 
 2. **Install dependencies**
@@ -47,38 +47,205 @@ Chaupar is an ancient Indian board game that combines strategy, luck, and skill:
    npm install
    ```
 
-3. **AI Setup** (Choose one):
-   - **Ollama (Recommended)**: Install Ollama and pull qwen2.5:latest model
-   - **OpenAI**: Get API key from [OpenAI Platform](https://platform.openai.com/)
-   - See [AI_SETUP.md](AI_SETUP.md) for detailed instructions
-
-4. **Firebase Setup** (for multiplayer)
-   - Create a new Firebase project at [Firebase Console](https://console.firebase.google.com/)
-   - Enable Firestore Database and Authentication
-   - Copy your Firebase config to `src/firebase/config.js`
-
-4. **Start the development server**
+3. **Start development server**
    ```bash
    npm run dev
    ```
 
-5. **Open your browser**
+4. **Open your browser**
    Navigate to `http://localhost:5173`
 
-## 🔧 Firebase Configuration
+### Automated Setup (Recommended)
 
-Update `src/firebase/config.js` with your Firebase credentials:
+For the fastest setup experience, use our automation scripts:
 
-```javascript
-const firebaseConfig = {
-  apiKey: "your-api-key",
-  authDomain: "your-project.firebaseapp.com",
-  projectId: "your-project-id",
-  storageBucket: "your-project.appspot.com",
-  messagingSenderId: "your-sender-id",
-  appId: "your-app-id"
-};
+```bash
+# Option 1: Bash script (most users)
+./setup.sh -p your-project-id -n "Your Game Name"
+
+# Option 2: Python script (advanced users)
+python setup_automation.py --project-id your-project-id --project-name "Your Game Name"
 ```
+
+**🎯 NEW: Automatic Project Creation!**
+
+If you don't provide a project ID, the scripts will automatically create a new Firebase project for you:
+
+```bash
+# Create new project automatically (recommended for first-time users)
+# Uses default name "Chaupar" if no --project-name specified
+./setup.sh
+
+# Or specify custom name
+./setup.sh --project-name "My Chaupar Game"
+
+# Python version (requires dependencies: pip install -r requirements.txt)
+python3 setup_automation.py
+```
+
+**Benefits of Automatic Creation:**
+- ✅ **No manual Firebase setup** required
+- ✅ **Unique project IDs** generated automatically
+- ✅ **Project caching** for future reruns
+- ✅ **Zero configuration** needed upfront
+
+**Where to get these values (if you want to use existing projects):**
+
+#### **Project ID (`your-project-id`)**
+1. **Go to [Firebase Console](https://console.firebase.google.com/)**
+2. **Click "Create Project" or select existing project**
+3. **Your Project ID** appears in the URL: `https://console.firebase.google.com/project/YOUR-PROJECT-ID`
+4. **Example Project IDs**: `chaupar-game-123`, `my-chaupar-app`, `chaupar-prod`
+
+#### **Game Name (`Your Game Name`)**
+- **Any descriptive name** for your game instance
+- **Examples**: `"My Chaupar Game"`, `"Chaupar Tournament"`, `"Family Game Night"`
+- **This is just for display** and can be changed later
+
+#### **Complete Example**
+```bash
+# If your Firebase project ID is "chaupar-game-2024"
+./setup.sh -p chaupar-game-2024 -n "Chaupar Tournament 2024"
+
+# Or with Python
+python setup_automation.py --project-id chaupar-game-2024 --project-name "Chaupar Tournament 2024"
+```
+
+**See [AUTOMATION_README.md](AUTOMATION_README.md) for complete automation details.**
+
+### Project Caching & Reruns
+
+**🔄 Smart Rerun System**
+
+Both setup scripts automatically cache your project ID and can be rerun safely:
+
+```bash
+# First run - creates new project automatically
+# Uses default name "Chaupar"
+./setup.sh
+# Creates: chaupar-123456-abc
+
+# Future runs - automatically uses cached project
+./setup.sh
+# Uses: chaupar-123456-abc (from cache)
+
+# Switch to different project
+./setup.sh -p different-project-id
+# Updates cache to new project
+```
+
+**💾 Cache File**
+- **Location**: `.chaupar_cache.json`
+- **Contents**: Project ID, name, timestamps
+- **Purpose**: Enable reruns without specifying project ID
+- **Safety**: Backed up automatically when switching projects
+
+**🔄 Rerun Scenarios**
+1. **Same Project**: Updates configuration, preserves API keys
+2. **Different Project**: Backs up old config, creates new one
+3. **No Project ID**: Uses cached project or creates new one
+
+### Getting Firebase Configuration Values
+
+After running the setup script, you'll need to update the Firebase configuration in `.env.local`:
+
+#### **Step 1: Get Firebase Config**
+1. **Go to [Firebase Console](https://console.firebase.google.com/)**
+2. **Select your project** (the one you used in setup)
+3. **Click Project Settings** (gear icon)
+4. **Scroll to "Your apps" section**
+5. **Click "Add app" → Web** (if no web app exists)
+6. **Copy the configuration object**
+
+#### **Step 2: Update .env.local**
+Replace the placeholder values in `.env.local`:
+
+```bash
+# Before (placeholder values)
+VITE_FIREBASE_API_KEY=your_firebase_api_key_here
+VITE_FIREBASE_AUTH_DOMAIN=your_project.firebaseapp.com
+
+# After (your actual values)
+VITE_FIREBASE_API_KEY=AIzaSyC...your_actual_key
+VITE_FIREBASE_AUTH_DOMAIN=chaupar-game-123.firebaseapp.com
+```
+
+#### **Step 3: Enable Authentication**
+1. **In Firebase Console → Authentication**
+2. **Click "Get Started"**
+3. **Click "Sign-in method"**
+4. **Enable Google provider**
+5. **Add your domain to authorized domains**
+
+#### **Step 4: Deploy to Firebase Hosting**
+The setup scripts automatically configure Firebase hosting for your game:
+
+```bash
+# Build and deploy
+npm run build
+firebase deploy --only hosting
+
+# Or use the setup script to deploy automatically
+./setup.sh --deploy
+```
+
+**🌐 Your game will be hosted at**: `https://your-project-id.web.app`
+
+### Deployment to Firebase Hosting
+
+#### **🚀 Automatic Deployment**
+The setup scripts automatically configure and deploy your game:
+
+```bash
+# Complete setup with automatic deployment
+# Uses default name "Chaupar"
+./setup.sh --deploy
+
+# Or specify custom name
+./setup.sh --project-name "My Chaupar Game" --deploy
+
+# This will:
+✅ Create Firebase project
+✅ Configure hosting
+✅ Build the game
+✅ Deploy to Firebase hosting
+✅ Provide hosting URL
+```
+
+#### **🔧 Manual Deployment**
+If you prefer manual deployment:
+
+```bash
+# 1. Build the game
+npm run build
+
+# 2. Deploy to hosting
+firebase deploy --only hosting
+
+# 3. View your live game
+firebase open hosting:site
+```
+
+#### **📱 Hosting Features**
+- **Global CDN**: Fast loading worldwide
+- **HTTPS**: Secure by default
+- **Custom domains**: Add your own domain
+- **Preview channels**: Test before production
+- **Rollback**: Easy version management
+
+### Complete Setup
+
+For detailed setup instructions including Firebase configuration, AI setup, security configuration, and production deployment, see:
+
+📚 **[COMPREHENSIVE_SETUP.md](COMPREHENSIVE_SETUP.md)** - Complete setup guide for production deployment
+
+This guide covers:
+- 🔥 Firebase configuration and security
+- 🤖 AI setup (Ollama & OpenAI)
+- 🔒 Security configuration and deployment
+- 🚀 Production deployment to multiple platforms
+- 🧪 Testing and development setup
+- 🔍 Troubleshooting and support
 
 ## 🎮 How to Play
 
