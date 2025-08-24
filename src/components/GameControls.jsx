@@ -8,7 +8,8 @@ const GameControls = ({
   diceValue, 
   currentPlayer, 
   gameStatus, 
-  canRoll 
+  canRoll,
+  availableMoves = []
 }) => {
   const isGameActive = gameStatus === 'playing';
   const isPlayerTurn = currentPlayer === 0;
@@ -113,13 +114,26 @@ const GameControls = ({
       </div>
 
       <div className="game-tips">
-        <h4>Game Tips</h4>
+        <h4>Chaupar Rules</h4>
         <ul>
-          <li>Roll a 6 to start your journey</li>
-          <li>Safe zones protect you from being sent back</li>
-          <li>Land on opponents to send them back to start</li>
-          <li>Reach the finish line to win!</li>
+          <li>Need high throw (10, 25, 30) to start pieces</li>
+          <li>Safe squares (🌸) protect from capture</li>
+          <li>Must capture opponent piece to go home</li>
+          <li>Special moves: 25→8, 30→13 squares</li>
+          <li>3 consecutive high throws = "beli jaye"</li>
         </ul>
+        {availableMoves.length > 0 && (
+          <div className="available-moves">
+            <h5>Available Moves:</h5>
+            <ul>
+              {availableMoves.map((move, index) => (
+                <li key={index}>
+                  Piece {move.pieceIndex + 1}: {move.type === 'start' ? 'Start' : `${move.currentPosition} → ${move.newPosition}`}
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
       </div>
 
       <div className="quick-actions">

@@ -6,60 +6,73 @@ import GameBoard from './GameBoard';
 import GameControls from './GameControls';
 import GameInfo from './GameInfo';
 import { createAIService } from '../services/aiService';
+import { useChauparGame } from './GameState';
 import './Game.css';
 
-const Game = ({ gameState, setGameState }) => {
+const Game = ({ gameState: initialGameState, setGameState }) => {
   const { gameId } = useParams();
   const navigate = useNavigate();
-  const [currentGame, setCurrentGame] = useState(gameState);
+  const [currentGame, setCurrentGame] = useState(initialGameState);
   const [showInfo, setShowInfo] = useState(false);
-  const [currentPlayer, setCurrentPlayer] = useState(0);
-  const [diceValue, setDiceValue] = useState(null);
-  const [gameStatus, setGameStatus] = useState('waiting');
+  
+  // Use proper Chaupar game state management
+  const {
+    gameState,
+    gameInstance,
+    initializeGame,
+    throwCowries,
+    makeMove,
+    getAvailableMoves,
+    endTurn,
+    checkGameOver
+  } = useChauparGame();
 
   useEffect(() => {
-    if (!currentGame) {
-      // Try to load game from Firebase or create new one
-      setCurrentGame({
+    if (!currentGame && initialGameState) {
+      // Initialize Chaupar game with proper state
+      setCurrentGame(initialGameState);
+      
+      if (initialGameState.mode === 'ai') {
+        initializeGame('ai', {
+          skillLevel: initialGameState.skillLevel,
+          aiProvider: initialGameState.aiProvider
+        });
+      } else {
+        initializeGame('multiplayer');
+      }
+    } else if (!currentGame) {
+      // Fallback: create basic multiplayer game
+      const fallbackGame = {
         id: gameId,
         mode: 'multiplayer',
         players: [{ id: 'player1', name: 'You', isHost: true }],
         status: 'waiting',
         createdAt: new Date()
-      });
+      };
+      setCurrentGame(fallbackGame);
+      initializeGame('multiplayer');
     }
-  }, [gameId, currentGame]);
+  }, [gameId, currentGame, initialGameState, initializeGame]);
 
   const rollDice = () => {
-    // Traditional Chaupar cowrie shell scoring
-    const scores = [7, 10, 2, 3, 4, 25, 30, 14];
-    const weights = [1, 1, 2, 2, 2, 1, 1, 1]; // Weighted random selection
+    if (!gameInstance) return;
     
-    let totalWeight = weights.reduce((sum, weight) => sum + weight, 0);
-    let random = Math.random() * totalWeight;
+    // Use proper Chaupar cowrie throw
+    const throwResult = throwCowries();
     
-    let selectedScore = scores[0];
-    for (let i = 0; i < scores.length; i++) {
-      random -= weights[i];
-      if (random <= 0) {
-        selectedScore = scores[i];
-        break;
+    if (throwResult) {
+      // Check if it's AI turn and handle accordingly
+      if (currentGame?.mode === 'ai' && gameState?.currentPlayer === 1) {
+        handleAITurn(throwResult);
       }
-    }
-    
-    setDiceValue(selectedScore);
-    
-    // Handle AI turns
-    if (currentGame?.mode === 'ai' && currentPlayer > 0) {
-      handleAITurn(selectedScore);
     }
   };
 
-  const handleAITurn = async (diceRoll) => {
-    if (!currentGame || currentPlayer !== 1) return; // Only handle AI (player 1)
+  const handleAITurn = async (throwResult) => {
+    if (!gameState || gameState.currentPlayer !== 1) return;
     
-    const aiPlayer = currentGame.players[currentPlayer];
-    if (!aiPlayer.isAI) return;
+    const aiPlayer = currentGame?.players?.[1];
+    if (!aiPlayer?.isAI) return;
 
     // Create AI service for this player
     const aiService = createAIService(aiPlayer.aiProvider || 'ollama');
@@ -67,37 +80,64 @@ const Game = ({ gameState, setGameState }) => {
     // Simulate AI thinking time
     setTimeout(async () => {
       try {
-        // Generate AI move
+        // Get available moves for AI
+        const availableMoves = getAvailableMoves(1);
+        
+        if (availableMoves.length === 0) {
+          // No moves available, end turn
+          endTurn();
+          return;
+        }
+
+        // Generate AI move with proper game state
         const aiMove = await aiService.generateMove(
           { 
-            board: {}, // Simplified board state for now
-            players: currentGame.players,
-            currentPlayer: currentPlayer,
-            diceValue: diceRoll
+            board: { 1: { pieces: gameState.players[1].pieces } },
+            players: gameState.players,
+            currentPlayer: gameState.currentPlayer,
+            diceValue: throwResult.score
           },
-          currentPlayer,
+          1,
           aiPlayer.skillLevel
         );
 
         console.log(`AI move:`, aiMove);
         
-        // Move back to human player
-        setCurrentPlayer(0);
-        setDiceValue(null);
+        // Execute the AI move
+        if (aiMove.type !== 'pass' && aiMove.pieceIndex !== undefined) {
+          const success = makeMove(1, aiMove.pieceIndex);
+          if (success) {
+            // Check for game over
+            const gameOver = checkGameOver();
+            if (!gameOver.gameOver) {
+              endTurn();
+            }
+          } else {
+            endTurn(); // Invalid move, just end turn
+          }
+        } else {
+          endTurn(); // AI passed
+        }
       } catch (error) {
         console.error('AI move failed:', error);
-        // Fallback: move back to human player
-        setCurrentPlayer(0);
-        setDiceValue(null);
+        // Fallback: just end turn
+        endTurn();
       }
     }, 1000 + Math.random() * 1000); // Random delay between 1-2 seconds
   };
 
-  const endTurn = () => {
-    if (currentGame?.mode === 'ai') {
-      setCurrentPlayer(currentPlayer === 0 ? 1 : 0);
+  const handleEndTurn = () => {
+    if (!gameInstance) return;
+    
+    // Use proper game state end turn
+    endTurn();
+    
+    // If it's now the AI's turn, automatically trigger AI move after a short delay
+    if (currentGame?.mode === 'ai' && gameState?.currentPlayer === 1) {
+      setTimeout(() => {
+        rollDice(); // This will trigger the AI turn
+      }, 500);
     }
-    setDiceValue(null);
   };
 
   const copyGameCode = () => {
@@ -149,18 +189,20 @@ const Game = ({ gameState, setGameState }) => {
       <div className="game-content">
         <div className="game-main">
           <GameBoard 
-            currentPlayer={currentPlayer}
-            diceValue={diceValue}
-            gameStatus={gameStatus}
+            currentPlayer={gameState?.currentPlayer || 0}
+            diceValue={gameState?.lastThrow?.score || null}
+            gameStatus={gameState?.gameStatus || 'waiting'}
+            gameState={gameState}
           />
           
           <GameControls
             onRollDice={rollDice}
-            onEndTurn={endTurn}
-            diceValue={diceValue}
-            currentPlayer={currentPlayer}
-            gameStatus={gameStatus}
-            canRoll={!diceValue && gameStatus === 'playing'}
+            onEndTurn={handleEndTurn}
+            diceValue={gameState?.lastThrow?.score || null}
+            currentPlayer={gameState?.currentPlayer || 0}
+            gameStatus={gameState?.gameStatus || 'waiting'}
+            canRoll={!gameState?.lastThrow && gameState?.gameStatus === 'playing'}
+            availableMoves={gameState ? getAvailableMoves(gameState.currentPlayer) : []}
           />
         </div>
 
@@ -174,8 +216,9 @@ const Game = ({ gameState, setGameState }) => {
           >
             <GameInfo 
               game={currentGame}
-              currentPlayer={currentPlayer}
-              diceValue={diceValue}
+              currentPlayer={gameState?.currentPlayer || 0}
+              diceValue={gameState?.lastThrow?.score || null}
+              gameState={gameState}
             />
           </motion.div>
         )}

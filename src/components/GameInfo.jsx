@@ -92,14 +92,16 @@ const GameInfo = ({ game, currentPlayer, diceValue }) => {
       )}
 
       <div className="info-section">
-        <h4>Rules Summary</h4>
+        <h4>Traditional Chaupar Rules</h4>
         <div className="rules-summary">
           <ul>
-            <li>Roll a 6 to start</li>
-            <li>Move clockwise around the board</li>
-            <li>Safe zones protect you</li>
-            <li>Land on opponents to send them back</li>
-            <li>First to reach the end wins!</li>
+            <li>High throws (10, 25, 30) to start pieces</li>
+            <li>Move clockwise around cross-shaped board</li>
+            <li>Safe squares (🌸) protect from capture</li>
+            <li>Capture opponents to earn "tohd"</li>
+            <li>Special cowrie scoring: 1-up=10, 5-up=25, 6-up=30</li>
+            <li>Must have "tohd" before going home</li>
+            <li>First to get all pieces home wins!</li>
           </ul>
         </div>
       </div>
