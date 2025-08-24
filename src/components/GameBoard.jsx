@@ -163,25 +163,26 @@ const GameBoard = ({ currentPlayer, diceValue, gameStatus }) => {
         </div>
         
         <div className="board-layout">
-          {/* Top-left home area */}
-          <div className="home-area home-top-left">
-            <div className="home-title">Player 1</div>
-            <div className="home-pieces">
-              <div className="home-piece player1-piece"></div>
-              <div className="home-piece player1-piece"></div>
-              <div className="home-piece player1-piece"></div>
-              <div className="home-piece player1-piece"></div>
+          {/* Top home areas - side by side */}
+          <div className="home-areas-row">
+            <div className="home-area home-top-left">
+              <div className="home-title">Player 1</div>
+              <div className="home-pieces">
+                <div className="home-piece player1-piece"></div>
+                <div className="home-piece player1-piece"></div>
+                <div className="home-piece player1-piece"></div>
+                <div className="home-piece player1-piece"></div>
+              </div>
             </div>
-          </div>
-          
-          {/* Top-right home area */}
-          <div className="home-area home-top-right">
-            <div className="home-title">Player 2</div>
-            <div className="home-pieces">
-              <div className="home-piece player2-piece"></div>
-              <div className="home-piece player2-piece"></div>
-              <div className="home-piece player2-piece"></div>
-              <div className="home-piece player2-piece"></div>
+            
+            <div className="home-area home-top-right">
+              <div className="home-title">Player 2</div>
+              <div className="home-pieces">
+                <div className="home-piece player2-piece"></div>
+                <div className="home-piece player2-piece"></div>
+                <div className="home-piece player2-piece"></div>
+                <div className="home-piece player2-piece"></div>
+              </div>
             </div>
           </div>
           
@@ -190,25 +191,26 @@ const GameBoard = ({ currentPlayer, diceValue, gameStatus }) => {
             {renderXShapedPath()}
           </div>
           
-          {/* Bottom-left home area */}
-          <div className="home-area home-bottom-left">
-            <div className="home-title">Player 3</div>
-            <div className="home-pieces">
-              <div className="home-piece player3-piece"></div>
-              <div className="home-piece player3-piece"></div>
-              <div className="home-piece player3-piece"></div>
-              <div className="home-piece player3-piece"></div>
+          {/* Bottom home areas - side by side */}
+          <div className="home-areas-row">
+            <div className="home-area home-bottom-left">
+              <div className="home-title">Player 3</div>
+              <div className="home-pieces">
+                <div className="home-piece player3-piece"></div>
+                <div className="home-piece player3-piece"></div>
+                <div className="home-piece player3-piece"></div>
+                <div className="home-piece player3-piece"></div>
+              </div>
             </div>
-          </div>
-          
-          {/* Bottom-right home area */}
-          <div className="home-area home-bottom-right">
-            <div className="home-title">Player 4</div>
-            <div className="home-pieces">
-              <div className="home-piece player4-piece"></div>
-              <div className="home-piece player4-piece"></div>
-              <div className="home-piece player4-piece"></div>
-              <div className="home-piece player4-piece"></div>
+            
+            <div className="home-area home-bottom-right">
+              <div className="home-title">Player 4</div>
+              <div className="home-pieces">
+                <div className="home-piece player4-piece"></div>
+                <div className="home-piece player4-piece"></div>
+                <div className="home-piece player4-piece"></div>
+                <div className="home-piece player4-piece"></div>
+              </div>
             </div>
           </div>
         </div>

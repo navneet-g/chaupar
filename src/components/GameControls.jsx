@@ -88,10 +88,16 @@ const GameControls = ({
             ) : (
               <>
                 <div className="cowrie-icon">🐚</div>
-                Throw Cowrie Shells
+                {canRoll ? 'Throw Cowrie Shells' : 'Not Your Turn'}
               </>
             )}
           </motion.button>
+          
+          {!canRoll && !isLoading && (
+            <div className="roll-status">
+              {currentPlayer !== 0 ? 'Wait for your turn' : 'Game not ready'}
+            </div>
+          )}
         </div>
       </div>
 

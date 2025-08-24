@@ -107,30 +107,55 @@ const Game = ({ gameState: initialGameState, setGameState }) => {
 
   // Memoize roll dice function
   const rollDice = useCallback(async () => {
-    if (!gameInstance) return;
+    console.log('rollDice called', { 
+      gameInstance: !!gameInstance, 
+      currentPlayer: gameState?.currentPlayer, 
+      gameStatus: gameState?.gameStatus,
+      canRoll: gameState?.currentPlayer === 0 && gameState?.gameStatus === 'playing'
+    });
+    
+    if (!gameInstance) {
+      console.log('No game instance, cannot roll dice');
+      return;
+    }
     
     try {
       setIsLoading(true);
       setError(null);
       
+      console.log('Throwing cowries...');
       // Use proper Chaupar cowrie throw
       const throwResult = throwCowries();
+      console.log('Throw result:', throwResult);
       
       if (throwResult) {
         // Check if it's AI turn and handle accordingly
         if (currentGame?.mode === 'ai' && gameState?.currentPlayer === 1) {
+          console.log('AI turn detected, handling AI move...');
           await handleAITurn(throwResult);
         }
       }
     } catch (err) {
-      setError(err.message);
       console.error('Dice roll failed:', err);
+      setError(err.message);
     } finally {
       setIsLoading(false);
     }
   }, [gameInstance, throwCowries, currentGame?.mode, gameState?.currentPlayer, handleAITurn]);
 
-
+  // Initialize game when component mounts or game changes
+  useEffect(() => {
+    if (currentGame && !gameInstance) {
+      console.log('Initializing game:', currentGame.mode);
+      if (currentGame.mode === 'ai') {
+        initializeGameCallback('ai', {
+          skillLevel: currentGame.skillLevel || 'intermediate'
+        });
+      } else {
+        initializeGameCallback('multiplayer');
+      }
+    }
+  }, [gameId, currentGame, gameInstance, initializeGameCallback]);
 
   // Memoize end turn handler
   const handleEndTurn = useCallback(() => {
@@ -292,7 +317,7 @@ Timestamp: ${new Date().toISOString()}`;
             diceValue={gameState?.lastThrow?.score || null}
             currentPlayer={gameState?.currentPlayer || 0}
             gameStatus={gameState?.gameStatus || 'waiting'}
-            canRoll={!gameState?.lastThrow && gameState?.gameStatus === 'playing'}
+            canRoll={gameState?.currentPlayer === 0 && gameState?.gameStatus === 'playing' && !isLoading}
             availableMoves={availableMoves}
             isLoading={isLoading}
           />

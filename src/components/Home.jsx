@@ -258,7 +258,7 @@ Timestamp: ${new Date().toISOString()}`;
             ) : (
               <div className="guest-indicator">
                 <User size={14} />
-                Guest
+                Guest Player
               </div>
             )}
           </div>
@@ -276,7 +276,7 @@ Timestamp: ${new Date().toISOString()}`;
             ) : (
               <button 
                 onClick={() => handleSignIn('google')}
-                className="btn btn-primary"
+                className="btn btn-outline"
                 disabled={isConnecting || isOffline}
               >
                 <LogIn size={14} />
@@ -457,38 +457,6 @@ Timestamp: ${new Date().toISOString()}`;
           </button>
         </div>
       </section>
-
-      {/* Auth Required - Only show if not authenticated */}
-      {!isAuthenticated && (
-        <section className="auth-required">
-          <div className="auth-message">
-            <h3>Sign In to Play</h3>
-            <div className="auth-options">
-              <button 
-                onClick={() => handleSignIn('google')}
-                className="btn btn-primary btn-large"
-                disabled={isConnecting || isOffline}
-              >
-                <LogIn size={16} />
-                Sign In with Google
-              </button>
-              
-              <div className="auth-divider">
-                <span>or</span>
-              </div>
-              
-              <button 
-                onClick={() => handleSignIn('anonymous')}
-                className="btn btn-outline btn-large"
-                disabled={isConnecting || isOffline}
-              >
-                <User size={16} />
-                Play as Guest
-              </button>
-            </div>
-          </div>
-        </section>
-      )}
     </div>
   );
 };
