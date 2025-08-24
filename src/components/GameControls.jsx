@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion';
-import { Square, RotateCcw, Play, Pause } from 'lucide-react';
+import { Square, RotateCcw, Play, Pause, Loader } from 'lucide-react';
 import './GameControls.css';
 
 const GameControls = ({ 
@@ -9,7 +9,8 @@ const GameControls = ({
   currentPlayer, 
   gameStatus, 
   canRoll,
-  availableMoves = []
+  availableMoves = [],
+  isLoading = false
 }) => {
   const isGameActive = gameStatus === 'playing';
   const isPlayerTurn = currentPlayer === 0;
@@ -71,14 +72,23 @@ const GameControls = ({
 
         <div className="dice-controls">
           <motion.button
-            className={`btn btn-primary ${!canRoll ? 'disabled' : ''}`}
+            className={`btn btn-primary ${!canRoll || isLoading ? 'disabled' : ''}`}
             onClick={onRollDice}
-            disabled={!canRoll}
-            whileHover={canRoll ? { scale: 1.05 } : {}}
-            whileTap={canRoll ? { scale: 0.95 } : {}}
+            disabled={!canRoll || isLoading}
+            whileHover={canRoll && !isLoading ? { scale: 1.05 } : {}}
+            whileTap={canRoll && !isLoading ? { scale: 0.95 } : {}}
           >
-            <div className="cowrie-icon">🐚</div>
-            Throw Cowrie Shells
+            {isLoading ? (
+              <>
+                <Loader size={20} className="spinning" />
+                Rolling...
+              </>
+            ) : (
+              <>
+                <div className="cowrie-icon">🐚</div>
+                Throw Cowrie Shells
+              </>
+            )}
           </motion.button>
         </div>
       </div>
@@ -92,7 +102,7 @@ const GameControls = ({
             </div>
             {!isPlayerTurn && (
               <span className="ai-thinking">
-                AI is thinking...
+                {isLoading ? 'AI is thinking...' : 'AI is thinking...'}
               </span>
             )}
           </div>
@@ -102,6 +112,7 @@ const GameControls = ({
           <motion.button
             className="btn btn-secondary"
             onClick={onEndTurn}
+            disabled={isLoading}
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             whileHover={{ scale: 1.05 }}
@@ -137,14 +148,13 @@ const GameControls = ({
       </div>
 
       <div className="quick-actions">
-        <button className="btn btn-outline">
-          <RotateCcw size={16} />
-          Reset Game
-        </button>
-        <button className="btn btn-outline">
-          <Pause size={16} />
-          Pause
-        </button>
+        <h4>Quick Actions</h4>
+        <div className="action-buttons">
+          <button className="btn btn-outline" onClick={() => window.location.reload()}>
+            <Square size={16} />
+            New Game
+          </button>
+        </div>
       </div>
     </div>
   );

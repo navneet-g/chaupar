@@ -1,105 +1,108 @@
+/* Game Controls Styles */
 .game-controls {
-  background: rgba(160, 82, 45, 0.9);
+  background: rgba(139, 69, 19, 0.9);
   border-radius: 15px;
-  padding: 30px;
+  padding: 2rem;
   border: 2px solid #DAA520;
   box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+  backdrop-filter: blur(10px);
 }
 
 .controls-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 25px;
+  margin-bottom: 2rem;
+  padding-bottom: 1rem;
+  border-bottom: 2px solid rgba(218, 165, 32, 0.3);
 }
 
 .controls-header h3 {
   color: #FFD700;
-  font-size: 1.8rem;
+  font-size: 1.5rem;
   margin: 0;
-  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+  font-weight: bold;
 }
 
 .game-status {
   display: flex;
   align-items: center;
+  gap: 0.5rem;
 }
 
 .status-indicator {
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 8px 16px;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
   border-radius: 20px;
-  font-weight: bold;
   font-size: 0.9rem;
-  text-transform: uppercase;
+  font-weight: bold;
+  text-transform: capitalize;
 }
 
 .status-indicator.waiting {
-  background: #FFA500;
-  color: #8B4513;
+  background: rgba(245, 158, 11, 0.2);
+  color: #f59e0b;
+  border: 1px solid #f59e0b;
 }
 
 .status-indicator.playing {
-  background: #32CD32;
-  color: white;
+  background: rgba(34, 197, 94, 0.2);
+  color: #22c55e;
+  border: 1px solid #22c55e;
 }
 
+.status-indicator.finished {
+  background: rgba(59, 130, 246, 0.2);
+  color: #3b82f6;
+  border: 1px solid #3b82f6;
+}
+
+/* Dice Section */
 .dice-section {
-  text-align: center;
-  margin-bottom: 30px;
+  margin-bottom: 2rem;
 }
 
 .dice-display {
-  margin-bottom: 20px;
-}
-
-.dice-placeholder {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 10px;
-  color: #F5DEB3;
-}
-
-.dice-placeholder span {
-  font-size: 1.1rem;
-  font-style: italic;
-}
-
-.cowrie-shells {
-  display: flex;
-  gap: 5px;
-  flex-wrap: wrap;
-  justify-content: center;
-  margin-bottom: 10px;
-}
-
-.cowrie-shell {
-  font-size: 1.5rem;
-  filter: drop-shadow(2px 2px 4px rgba(0, 0, 0, 0.3));
-  transition: transform 0.3s ease;
-}
-
-.cowrie-shell:hover {
-  transform: scale(1.2);
-}
-
-.cowrie-icon {
-  font-size: 1.2rem;
-  margin-right: 8px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 15px;
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+  border: 2px solid rgba(218, 165, 32, 0.3);
+  text-align: center;
 }
 
 .dice-result {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 10px;
+  gap: 1rem;
+}
+
+.dice-placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  color: #F5DEB3;
+  opacity: 0.7;
+}
+
+.cowrie-shells {
+  display: flex;
+  gap: 0.5rem;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.cowrie-shell {
+  font-size: 2rem;
+  filter: drop-shadow(2px 2px 4px rgba(0, 0, 0, 0.3));
 }
 
 .dice-number {
-  font-size: 2rem;
+  font-size: 3rem;
   font-weight: bold;
   color: #FFD700;
   text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
@@ -109,131 +112,282 @@
   font-size: 0.9rem;
   color: #F5DEB3;
   font-style: italic;
-  margin-top: 5px;
+  background: rgba(255, 255, 255, 0.1);
+  padding: 0.5rem 1rem;
+  border-radius: 20px;
+  border: 1px solid rgba(218, 165, 32, 0.3);
 }
 
 .dice-controls {
   display: flex;
   justify-content: center;
-  gap: 15px;
 }
 
+.btn {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 1rem 2rem;
+  border: none;
+  border-radius: 10px;
+  font-size: 1.1rem;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-decoration: none;
+  justify-content: center;
+  min-width: 200px;
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, #FFD700, #FFA500);
+  color: #8B4513;
+  box-shadow: 0 4px 15px rgba(255, 215, 0, 0.4);
+}
+
+.btn-primary:hover:not(.disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(255, 215, 0, 0.6);
+}
+
+.btn-primary.disabled {
+  background: #666;
+  color: #999;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+.btn-secondary {
+  background: linear-gradient(135deg, #8B4513, #A0522D);
+  color: #F5DEB3;
+  border: 2px solid #DAA520;
+}
+
+.btn-secondary:hover:not(:disabled) {
+  background: linear-gradient(135deg, #A0522D, #CD853F);
+  transform: translateY(-2px);
+}
+
+.btn-secondary:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.btn-outline {
+  background: transparent;
+  color: #FFD700;
+  border: 2px solid #FFD700;
+}
+
+.btn-outline:hover {
+  background: rgba(255, 215, 0, 0.1);
+  transform: translateY(-2px);
+}
+
+.cowrie-icon {
+  font-size: 1.5rem;
+}
+
+/* Loading Spinner */
+.spinning {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Turn Controls */
 .turn-controls {
-  margin-bottom: 30px;
-}
-
-.turn-info {
-  margin-bottom: 20px;
+  margin-bottom: 2rem;
+  padding: 1.5rem;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 10px;
+  border: 1px solid rgba(218, 165, 32, 0.2);
 }
 
 .turn-info h4 {
   color: #FFD700;
-  font-size: 1.3rem;
-  margin-bottom: 15px;
-  text-align: center;
+  margin-bottom: 1rem;
+  font-size: 1.2rem;
 }
 
 .player-turn {
   display: flex;
   flex-direction: column;
-  align-items: center;
-  gap: 10px;
+  gap: 0.5rem;
 }
 
 .player-indicator {
-  padding: 12px 24px;
-  border-radius: 25px;
+  padding: 0.75rem 1rem;
+  border-radius: 8px;
   font-weight: bold;
-  font-size: 1.1rem;
-  text-transform: uppercase;
-  letter-spacing: 1px;
+  text-align: center;
+  border: 2px solid;
 }
 
 .player-indicator.player-0 {
-  background: linear-gradient(45deg, #FF6B6B, #FF8E8E);
-  color: white;
+  background: rgba(34, 197, 94, 0.2);
+  color: #22c55e;
+  border-color: #22c55e;
 }
 
 .player-indicator.player-1 {
-  background: linear-gradient(45deg, #4ECDC4, #6EE7DF);
-  color: white;
+  background: rgba(239, 68, 68, 0.2);
+  color: #ef4444;
+  border-color: #ef4444;
 }
 
 .ai-thinking {
+  font-size: 0.9rem;
   color: #F5DEB3;
   font-style: italic;
-  font-size: 0.9rem;
+  text-align: center;
+  padding: 0.5rem;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 6px;
 }
 
+/* Game Tips */
 .game-tips {
-  margin-bottom: 30px;
+  margin-bottom: 2rem;
+  padding: 1.5rem;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 10px;
+  border: 1px solid rgba(218, 165, 32, 0.2);
 }
 
 .game-tips h4 {
   color: #FFD700;
-  font-size: 1.3rem;
-  margin-bottom: 15px;
-  text-align: center;
+  margin-bottom: 1rem;
+  font-size: 1.2rem;
 }
 
 .game-tips ul {
   list-style: none;
   padding: 0;
+  margin: 0;
 }
 
 .game-tips li {
   color: #F5DEB3;
-  padding: 8px 0;
-  border-bottom: 1px solid rgba(218, 165, 32, 0.3);
+  margin-bottom: 0.75rem;
+  padding-left: 1.5rem;
   position: relative;
-  padding-left: 20px;
+  line-height: 1.5;
 }
 
-.game-tips li:before {
-  content: '💡';
+.game-tips li::before {
+  content: '•';
+  color: #FFD700;
   position: absolute;
   left: 0;
-  top: 8px;
+  font-weight: bold;
 }
 
-.game-tips li:last-child {
-  border-bottom: none;
+.available-moves {
+  margin-top: 1.5rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid rgba(218, 165, 32, 0.3);
 }
 
+.available-moves h5 {
+  color: #FFD700;
+  margin-bottom: 1rem;
+  font-size: 1rem;
+}
+
+.available-moves ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.available-moves li {
+  color: #F5DEB3;
+  margin-bottom: 0.5rem;
+  padding: 0.5rem;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 6px;
+  border: 1px solid rgba(218, 165, 32, 0.2);
+  font-size: 0.9rem;
+}
+
+/* Quick Actions */
 .quick-actions {
+  padding: 1.5rem;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 10px;
+  border: 1px solid rgba(218, 165, 32, 0.2);
+}
+
+.quick-actions h4 {
+  color: #FFD700;
+  margin-bottom: 1rem;
+  font-size: 1.2rem;
+}
+
+.action-buttons {
   display: flex;
-  gap: 15px;
-  justify-content: center;
+  flex-direction: column;
+  gap: 0.75rem;
 }
 
-.quick-actions .btn {
-  flex: 1;
-  max-width: 150px;
-}
-
-/* Responsive design */
+/* Responsive Design */
 @media (max-width: 768px) {
+  .game-controls {
+    padding: 1.5rem;
+  }
+  
   .controls-header {
     flex-direction: column;
-    gap: 15px;
+    gap: 1rem;
     text-align: center;
   }
   
-  .controls-header h3 {
-    font-size: 1.5rem;
+  .dice-display {
+    padding: 1rem;
   }
   
   .dice-number {
-    font-size: 1.5rem;
+    font-size: 2.5rem;
   }
   
+  .btn {
+    min-width: 180px;
+    padding: 0.875rem 1.5rem;
+    font-size: 1rem;
+  }
+  
+  .turn-controls,
+  .game-tips,
   .quick-actions {
-    flex-direction: column;
-    align-items: center;
+    padding: 1rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .game-controls {
+    padding: 1rem;
   }
   
-  .quick-actions .btn {
-    max-width: 200px;
-    width: 100%;
+  .dice-display {
+    padding: 0.75rem;
+  }
+  
+  .dice-number {
+    font-size: 2rem;
+  }
+  
+  .btn {
+    min-width: 160px;
+    padding: 0.75rem 1.25rem;
+    font-size: 0.9rem;
+  }
+  
+  .cowrie-shell {
+    font-size: 1.5rem;
   }
 }
