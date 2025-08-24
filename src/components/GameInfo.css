@@ -1,0 +1,284 @@
+.game-info {
+  color: #FFF8DC;
+}
+
+.info-header {
+  margin-bottom: 25px;
+  text-align: center;
+}
+
+.info-header h3 {
+  color: #FFD700;
+  font-size: 1.5rem;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+}
+
+.info-section {
+  margin-bottom: 25px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid rgba(218, 165, 32, 0.3);
+}
+
+.info-section:last-child {
+  border-bottom: none;
+}
+
+.info-section h4 {
+  color: #FFD700;
+  font-size: 1.2rem;
+  margin-bottom: 15px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.players-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.player-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  background: rgba(139, 69, 19, 0.6);
+  border-radius: 8px;
+  border: 1px solid rgba(218, 165, 32, 0.3);
+  transition: all 0.3s ease;
+  position: relative;
+}
+
+.player-item.current {
+  border-color: #FFD700;
+  background: rgba(139, 69, 19, 0.8);
+  box-shadow: 0 0 10px rgba(255, 215, 0, 0.3);
+}
+
+.player-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.2rem;
+  border: 2px solid;
+}
+
+.player-avatar.player-0 {
+  border-color: #FF6B6B;
+  background: rgba(255, 107, 107, 0.2);
+}
+
+.player-avatar.player-1 {
+  border-color: #4ECDC4;
+  background: rgba(78, 205, 196, 0.2);
+}
+
+.player-details {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.player-name {
+  font-weight: bold;
+  color: #FFD700;
+  font-size: 1rem;
+}
+
+.player-role {
+  font-size: 0.8rem;
+  color: #F5DEB3;
+  font-style: italic;
+}
+
+.current-turn-indicator {
+  color: #FFD700;
+  font-size: 1.2rem;
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+.game-time {
+  text-align: center;
+}
+
+.time-display {
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: #FFD700;
+  background: rgba(139, 69, 19, 0.6);
+  padding: 10px 20px;
+  border-radius: 8px;
+  border: 1px solid #DAA520;
+}
+
+.game-mode-info {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.mode-badge {
+  padding: 6px 12px;
+  border-radius: 15px;
+  font-size: 0.9rem;
+  font-weight: bold;
+  text-transform: uppercase;
+}
+
+.mode-badge.ai {
+  background: linear-gradient(45deg, #4ECDC4, #6EE7DF);
+  color: white;
+}
+
+.mode-badge.multiplayer {
+  background: linear-gradient(45deg, #FF6B6B, #FF8E8E);
+  color: white;
+}
+
+.skill-badge {
+  padding: 6px 12px;
+  border-radius: 15px;
+  font-size: 0.9rem;
+  font-weight: bold;
+  background: #FFD700;
+  color: #8B4513;
+  text-transform: capitalize;
+}
+
+.provider-badge {
+  padding: 6px 12px;
+  border-radius: 15px;
+  font-size: 0.8rem;
+  font-weight: bold;
+  background: #4ECDC4;
+  color: white;
+  text-transform: uppercase;
+}
+
+.status-info {
+  text-align: center;
+}
+
+.status-badge {
+  padding: 8px 16px;
+  border-radius: 20px;
+  font-size: 0.9rem;
+  font-weight: bold;
+  text-transform: uppercase;
+}
+
+.status-badge.waiting {
+  background: #FFA500;
+  color: #8B4513;
+}
+
+.status-badge.playing {
+  background: #32CD32;
+  color: white;
+}
+
+.dice-info {
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.dice-value {
+  font-size: 2rem;
+  font-weight: bold;
+  color: #FFD700;
+  background: rgba(139, 69, 19, 0.6);
+  padding: 10px;
+  border-radius: 8px;
+  border: 1px solid #DAA520;
+}
+
+.dice-label {
+  color: #F5DEB3;
+  font-size: 0.9rem;
+  font-style: italic;
+}
+
+.rules-summary ul {
+  list-style: none;
+  padding: 0;
+}
+
+.rules-summary li {
+  color: #F5DEB3;
+  padding: 6px 0;
+  border-bottom: 1px solid rgba(218, 165, 32, 0.2);
+  position: relative;
+  padding-left: 20px;
+}
+
+.rules-summary li:before {
+  content: '🎯';
+  position: absolute;
+  left: 0;
+  top: 6px;
+}
+
+.rules-summary li:last-child {
+  border-bottom: none;
+}
+
+.info-footer {
+  text-align: center;
+  margin-top: 30px;
+  padding-top: 20px;
+  border-top: 1px solid rgba(218, 165, 32, 0.3);
+}
+
+.info-footer p {
+  color: #FFD700;
+  font-weight: bold;
+  margin-bottom: 8px;
+}
+
+.info-footer small {
+  color: #F5DEB3;
+  font-style: italic;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .info-header h3 {
+    font-size: 1.3rem;
+  }
+  
+  .player-item {
+    padding: 10px;
+  }
+  
+  .player-avatar {
+    width: 35px;
+    height: 35px;
+    font-size: 1rem;
+  }
+  
+  .time-display {
+    font-size: 1.3rem;
+    padding: 8px 16px;
+  }
+  
+  .dice-value {
+    font-size: 1.5rem;
+    padding: 8px;
+  }
+}

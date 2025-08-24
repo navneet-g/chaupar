@@ -1,0 +1,118 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Georgia', 'Times New Roman', serif;
+  background: linear-gradient(135deg, #8B4513 0%, #D2691E 50%, #CD853F 100%);
+  color: #FFF8DC;
+  min-height: 100vh;
+}
+
+.App {
+  min-height: 100vh;
+}
+
+/* Global button styles */
+.btn {
+  padding: 12px 24px;
+  border: none;
+  border-radius: 8px;
+  font-size: 1.1rem;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  font-family: inherit;
+}
+
+.btn-primary {
+  background: linear-gradient(45deg, #FFD700, #FFA500);
+  color: #8B4513;
+}
+
+.btn-primary:hover:not(.disabled) {
+  background: linear-gradient(45deg, #FFA500, #FFD700);
+  transform: scale(1.05);
+}
+
+.btn-secondary {
+  background: linear-gradient(45deg, #DAA520, #B8860B);
+  color: #FFF8DC;
+}
+
+.btn-secondary:hover:not(.disabled) {
+  background: linear-gradient(45deg, #B8860B, #DAA520);
+  transform: scale(1.05);
+}
+
+.btn-outline {
+  background: transparent;
+  color: #FFD700;
+  border: 2px solid #FFD700;
+}
+
+.btn-outline:hover:not(.disabled) {
+  background: #FFD700;
+  color: #8B4513;
+}
+
+.btn:disabled,
+.btn.disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none !important;
+}
+
+/* Icon button styles */
+.btn-icon {
+  background: transparent;
+  border: 2px solid #DAA520;
+  color: #FFD700;
+  padding: 8px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.btn-icon:hover {
+  background: #DAA520;
+  color: #8B4513;
+  transform: scale(1.1);
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #8B4513;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #DAA520;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #FFD700;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .btn {
+    padding: 10px 20px;
+    font-size: 1rem;
+  }
+  
+  .btn-icon {
+    padding: 6px;
+  }
+}

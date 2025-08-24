@@ -1,0 +1,239 @@
+.game-controls {
+  background: rgba(160, 82, 45, 0.9);
+  border-radius: 15px;
+  padding: 30px;
+  border: 2px solid #DAA520;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+}
+
+.controls-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 25px;
+}
+
+.controls-header h3 {
+  color: #FFD700;
+  font-size: 1.8rem;
+  margin: 0;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+}
+
+.game-status {
+  display: flex;
+  align-items: center;
+}
+
+.status-indicator {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  border-radius: 20px;
+  font-weight: bold;
+  font-size: 0.9rem;
+  text-transform: uppercase;
+}
+
+.status-indicator.waiting {
+  background: #FFA500;
+  color: #8B4513;
+}
+
+.status-indicator.playing {
+  background: #32CD32;
+  color: white;
+}
+
+.dice-section {
+  text-align: center;
+  margin-bottom: 30px;
+}
+
+.dice-display {
+  margin-bottom: 20px;
+}
+
+.dice-placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  color: #F5DEB3;
+}
+
+.dice-placeholder span {
+  font-size: 1.1rem;
+  font-style: italic;
+}
+
+.cowrie-shells {
+  display: flex;
+  gap: 5px;
+  flex-wrap: wrap;
+  justify-content: center;
+  margin-bottom: 10px;
+}
+
+.cowrie-shell {
+  font-size: 1.5rem;
+  filter: drop-shadow(2px 2px 4px rgba(0, 0, 0, 0.3));
+  transition: transform 0.3s ease;
+}
+
+.cowrie-shell:hover {
+  transform: scale(1.2);
+}
+
+.cowrie-icon {
+  font-size: 1.2rem;
+  margin-right: 8px;
+}
+
+.dice-result {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+
+.dice-number {
+  font-size: 2rem;
+  font-weight: bold;
+  color: #FFD700;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+}
+
+.throw-description {
+  font-size: 0.9rem;
+  color: #F5DEB3;
+  font-style: italic;
+  margin-top: 5px;
+}
+
+.dice-controls {
+  display: flex;
+  justify-content: center;
+  gap: 15px;
+}
+
+.turn-controls {
+  margin-bottom: 30px;
+}
+
+.turn-info {
+  margin-bottom: 20px;
+}
+
+.turn-info h4 {
+  color: #FFD700;
+  font-size: 1.3rem;
+  margin-bottom: 15px;
+  text-align: center;
+}
+
+.player-turn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+
+.player-indicator {
+  padding: 12px 24px;
+  border-radius: 25px;
+  font-weight: bold;
+  font-size: 1.1rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.player-indicator.player-0 {
+  background: linear-gradient(45deg, #FF6B6B, #FF8E8E);
+  color: white;
+}
+
+.player-indicator.player-1 {
+  background: linear-gradient(45deg, #4ECDC4, #6EE7DF);
+  color: white;
+}
+
+.ai-thinking {
+  color: #F5DEB3;
+  font-style: italic;
+  font-size: 0.9rem;
+}
+
+.game-tips {
+  margin-bottom: 30px;
+}
+
+.game-tips h4 {
+  color: #FFD700;
+  font-size: 1.3rem;
+  margin-bottom: 15px;
+  text-align: center;
+}
+
+.game-tips ul {
+  list-style: none;
+  padding: 0;
+}
+
+.game-tips li {
+  color: #F5DEB3;
+  padding: 8px 0;
+  border-bottom: 1px solid rgba(218, 165, 32, 0.3);
+  position: relative;
+  padding-left: 20px;
+}
+
+.game-tips li:before {
+  content: '💡';
+  position: absolute;
+  left: 0;
+  top: 8px;
+}
+
+.game-tips li:last-child {
+  border-bottom: none;
+}
+
+.quick-actions {
+  display: flex;
+  gap: 15px;
+  justify-content: center;
+}
+
+.quick-actions .btn {
+  flex: 1;
+  max-width: 150px;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .controls-header {
+    flex-direction: column;
+    gap: 15px;
+    text-align: center;
+  }
+  
+  .controls-header h3 {
+    font-size: 1.5rem;
+  }
+  
+  .dice-number {
+    font-size: 1.5rem;
+  }
+  
+  .quick-actions {
+    flex-direction: column;
+    align-items: center;
+  }
+  
+  .quick-actions .btn {
+    max-width: 200px;
+    width: 100%;
+  }
+}
