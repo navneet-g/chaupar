@@ -3,8 +3,7 @@ import {
   signInWithPopup, 
   GoogleAuthProvider, 
   signOut, 
-  onAuthStateChanged,
-  User 
+  onAuthStateChanged
 } from 'firebase/auth';
 import { auth } from '../firebase/config';
 

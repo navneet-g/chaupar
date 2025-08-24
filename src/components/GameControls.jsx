@@ -75,6 +75,8 @@ const GameControls = ({
             className={`btn btn-primary ${!canRoll || isLoading ? 'disabled' : ''}`}
             onClick={onRollDice}
             disabled={!canRoll || isLoading}
+            aria-label="Roll cowrie shells to determine move"
+            role="button"
             whileHover={canRoll && !isLoading ? { scale: 1.05 } : {}}
             whileTap={canRoll && !isLoading ? { scale: 0.95 } : {}}
           >
@@ -113,6 +115,8 @@ const GameControls = ({
             className="btn btn-secondary"
             onClick={onEndTurn}
             disabled={isLoading}
+            aria-label="End current turn and pass to next player"
+            role="button"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             whileHover={{ scale: 1.05 }}
@@ -150,7 +154,12 @@ const GameControls = ({
       <div className="quick-actions">
         <h4>Quick Actions</h4>
         <div className="action-buttons">
-          <button className="btn btn-outline" onClick={() => window.location.reload()}>
+          <button 
+            className="btn btn-outline" 
+            onClick={() => window.location.reload()}
+            aria-label="Start a new game"
+            role="button"
+          >
             <Square size={16} />
             New Game
           </button>

@@ -67,9 +67,12 @@ const GameBoard = ({ currentPlayer, diceValue, gameStatus }) => {
       {squares.map((squareNum) => (
         <motion.div
           key={squareNum}
-          className={getSquareClass(squareNum)}
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.95 }}
+          className={`board-square ${getSquareClass(squareNum)}`}
+          onClick={() => handleSquareClick(squareNum)}
+          onKeyDown={(e) => e.key === 'Enter' && handleSquareClick(squareNum)}
+          tabIndex={0}
+          role="button"
+          aria-label={`Square ${squareNum}${specialSquares[squareNum] ? ` - ${specialSquares[squareNum].name}` : ''}`}
           title={`Square ${squareNum}${specialSquares[squareNum] ? ` - ${specialSquares[squareNum].name}` : ''}`}
         >
           {getSquareContent(squareNum)}
