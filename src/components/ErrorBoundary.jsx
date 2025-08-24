@@ -1,5 +1,5 @@
 import React from 'react';
-import { AlertTriangle, RefreshCcw, Home } from 'lucide-react';
+import { AlertTriangle, RefreshCcw, Home, Copy } from 'lucide-react';
 import './ErrorBoundary.css';
 
 class ErrorBoundary extends React.Component {
@@ -35,6 +35,41 @@ class ErrorBoundary extends React.Component {
     window.location.href = '/';
   };
 
+  copyErrorToClipboard = () => {
+    try {
+      const errorInfo = `Chaupar Application Error:
+Error: ${this.state.error?.toString() || 'Unknown error'}
+Component Stack: ${this.state.errorInfo?.componentStack || 'Not available'}
+URL: ${window.location.href}
+User Agent: ${navigator.userAgent}
+Timestamp: ${new Date().toISOString()}`;
+      
+      navigator.clipboard.writeText(errorInfo).then(() => {
+        // Add visual feedback
+        const button = document.querySelector('.copy-error-btn');
+        if (button) {
+          const originalText = button.textContent;
+          button.textContent = 'Copied!';
+          setTimeout(() => {
+            button.textContent = originalText;
+          }, 2000);
+        }
+      }).catch(err => {
+        console.error('Failed to copy error to clipboard:', err);
+        // Fallback: select the error text
+        const errorElement = document.querySelector('.error-stack');
+        if (errorElement) {
+          const range = document.createRange();
+          range.selectNode(errorElement);
+          window.getSelection().removeAllRanges();
+          window.getSelection().addRange(range);
+        }
+      });
+    } catch (err) {
+      console.error('Copy to clipboard failed:', err);
+    }
+  };
+
   render() {
     if (this.state.hasError) {
       return (
@@ -54,6 +89,14 @@ class ErrorBoundary extends React.Component {
               >
                 <RefreshCcw size={20} />
                 Try Again
+              </button>
+              
+              <button 
+                className="btn btn-secondary copy-error-btn"
+                onClick={this.copyErrorToClipboard}
+              >
+                <Copy size={20} />
+                Copy Error
               </button>
               
               <button 

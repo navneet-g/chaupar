@@ -46,6 +46,15 @@
 
 .error-actions .btn {
   min-width: 140px;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  justify-content: center;
+}
+
+.copy-error-btn:hover {
+  background-color: #f59e0b !important;
+  color: white !important;
 }
 
 .error-details {

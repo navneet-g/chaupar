@@ -158,6 +158,25 @@
   padding: 2rem;
 }
 
+.game-error .error-actions {
+  display: flex;
+  gap: 1rem;
+  margin-top: 1rem;
+  justify-content: center;
+}
+
+.game-error .error-actions .btn {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-width: 120px;
+}
+
+.game-error .copy-error-btn:hover {
+  background-color: #f59e0b !important;
+  color: white !important;
+}
+
 .error-content {
   background: rgba(239, 68, 68, 0.1);
   border: 2px solid #ef4444;

@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Crown, Square, Users, Home, Info, Copy, X } from 'lucide-react';
+import { Crown, Square, Users, Home, Info } from 'lucide-react';
 import GameBoard from './GameBoard';
 import GameControls from './GameControls';
 import GameInfo from './GameInfo';
@@ -44,6 +44,58 @@ const Game = ({ gameState: initialGameState, setGameState }) => {
       setIsLoading(false);
     }
   }, [initializeGame]);
+
+  useEffect(() => {
+    if (!currentGame && initialGameState) {
+      // Initialize Chaupar game with proper state
+      setCurrentGame(initialGameState);
+      
+      if (initialGameState.mode === 'ai') {
+        initializeGameCallback('ai', {
+          skillLevel: initialGameState.skillLevel,
+          aiProvider: initialGameState.aiProvider
+        });
+      } else {
+        initializeGameCallback('multiplayer');
+      }
+    } else if (!currentGame) {
+      // Fallback: create basic multiplayer game
+      const fallbackGame = {
+        id: gameId,
+        mode: 'multiplayer',
+        players: [{ id: 'player1', name: 'You', isHost: true }],
+        status: 'waiting',
+        createdAt: new Date()
+      };
+      setCurrentGame(fallbackGame);
+      initializeGameCallback('multiplayer');
+    }
+  }, [gameId, currentGame, initialGameState, initializeGameCallback]);
+
+  // Memoize roll dice function
+  const rollDice = useCallback(async () => {
+    if (!gameInstance) return;
+    
+    try {
+      setIsLoading(true);
+      setError(null);
+      
+      // Use proper Chaupar cowrie throw
+      const throwResult = throwCowries();
+      
+      if (throwResult) {
+        // Check if it's AI turn and handle accordingly
+        if (currentGame?.mode === 'ai' && gameState?.currentPlayer === 1) {
+          await handleAITurn(throwResult);
+        }
+      }
+    } catch (err) {
+      setError(err.message);
+      console.error('Dice roll failed:', err);
+    } finally {
+      setIsLoading(false);
+    }
+  }, [gameInstance, throwCowries, currentGame?.mode, gameState?.currentPlayer, handleAITurn]);
 
   // Memoize AI turn handler
   const handleAITurn = useCallback(async (throwResult) => {
@@ -105,44 +157,6 @@ const Game = ({ gameState: initialGameState, setGameState }) => {
     }, 1000 + Math.random() * 1000); // Random delay between 1-2 seconds
   }, [gameState, currentGame?.players, getAvailableMoves, makeMove, checkGameOver, endTurn]);
 
-  // Memoize roll dice function
-  const rollDice = useCallback(async () => {
-    if (!gameInstance) return;
-    
-    try {
-      setIsLoading(true);
-      setError(null);
-      
-      // Use proper Chaupar cowrie throw
-      const throwResult = throwCowries();
-      
-      if (throwResult) {
-        // Check if it's AI turn and handle accordingly
-        if (currentGame?.mode === 'ai' && gameState?.currentPlayer === 1) {
-          await handleAITurn(throwResult);
-        }
-      }
-    } catch (err) {
-      setError(err.message);
-      console.error('Dice roll failed:', err);
-    } finally {
-      setIsLoading(false);
-    }
-  }, [gameInstance, throwCowries, currentGame?.mode, gameState?.currentPlayer, handleAITurn]);
-
-  // Memoize AI turn handler
-        } else {
-          endTurn(); // AI passed
-        }
-      } catch (error) {
-        console.error('AI move failed:', error);
-        setError('AI move failed. Please try again.');
-        // Fallback: just end turn
-        endTurn();
-      }
-    }, 1000 + Math.random() * 1000); // Random delay between 1-2 seconds
-  }, [gameState, currentGame?.players, getAvailableMoves, makeMove, checkGameOver, endTurn]);
-
   // Memoize end turn handler
   const handleEndTurn = useCallback(() => {
     if (!gameInstance) return;
@@ -163,37 +177,6 @@ const Game = ({ gameState: initialGameState, setGameState }) => {
     }
   }, [gameInstance, endTurn, currentGame?.mode, gameState?.currentPlayer, rollDice]);
 
-  // Copy error to clipboard function
-  const copyErrorToClipboard = useCallback(async (errorText) => {
-    try {
-      const errorInfo = `Chaupar Game Error:
-Error: ${errorText}
-URL: ${window.location.href}
-User Agent: ${navigator.userAgent}
-Timestamp: ${new Date().toISOString()}`;
-      
-      await navigator.clipboard.writeText(errorInfo);
-      // Add visual feedback that copy was successful
-      const button = document.querySelector(".copy-error-btn");
-      if (button) {
-        const originalText = button.textContent;
-        button.textContent = "Copied!";
-        setTimeout(() => {
-          button.textContent = originalText;
-        }, 2000);
-      }
-    } catch (err) {
-      console.error("Failed to copy error to clipboard:", err);
-      // Fallback: select the error text
-      const errorElement = document.querySelector(".game-error p");
-      if (errorElement) {
-        const range = document.createRange();
-        range.selectNode(errorElement);
-        window.getSelection().removeAllRanges();
-        window.getSelection().addRange(range);
-      }
-    }
-  }, []);
   // Memoize copy game code function
   const copyGameCode = useCallback(async () => {
     try {
@@ -221,30 +204,14 @@ Timestamp: ${new Date().toISOString()}`;
     );
   }
 
-  // Show error state with copy functionality
+  // Show error state
   if (error) {
     return (
       <div className="game-error">
         <div className="error-content">
           <h2>Game Error</h2>
           <p>{error}</p>
-          <div className="error-actions">
-            <button onClick={() => setError(null)} className="btn btn-primary">
-              <X size={16} />
-              Dismiss
-            </button>
-            <button 
-              onClick={() => copyErrorToClipboard(error)} 
-              className="btn btn-secondary copy-error-btn"
-            >
-              <Copy size={16} />
-              Copy Error
-            </button>
-          </div>
-        </div>
-      </div>
-    );
-  }          <button onClick={() => setError(null)}>Dismiss</button>
+          <button onClick={() => setError(null)}>Dismiss</button>
         </div>
       </div>
     );

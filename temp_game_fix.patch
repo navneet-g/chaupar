@@ -1,0 +1,67 @@
+--- a/src/components/Game.jsx
++++ b/src/components/Game.jsx
+@@ -72,32 +72,6 @@
+   }, [gameId, currentGame, initialGameState, initializeGameCallback]);
+ 
+-  // Memoize roll dice function
+-  const rollDice = useCallback(async () => {
+-    if (!gameInstance) return;
+-    
+-    try {
+-      setIsLoading(true);
+-      setError(null);
+-      
+-      // Use proper Chaupar cowrie throw
+-      const throwResult = throwCowries();
+-      
+-      if (throwResult) {
+-        // Check if it's AI turn and handle accordingly
+-        if (currentGame?.mode === 'ai' && gameState?.currentPlayer === 1) {
+-          await handleAITurn(throwResult);
+-        }
+-      }
+-    } catch (err) {
+-      setError(err.message);
+-      console.error('Dice roll failed:', err);
+-    } finally {
+-      setIsLoading(false);
+-    }
+-  }, [gameInstance, throwCowries, currentGame?.mode, gameState?.currentPlayer, handleAITurn]);
+-
+-  // Memoize AI turn handler
++  // Memoize AI turn handler (defined first to avoid circular dependency)
+   const handleAITurn = useCallback(async (throwResult) => {
+     if (!gameState || gameState.currentPlayer !== 1) return;
+     
+@@ -156,6 +130,32 @@
+     }, 1000 + Math.random() * 1000); // Random delay between 1-2 seconds
+   }, [gameState, currentGame?.players, getAvailableMoves, makeMove, checkGameOver, endTurn]);
+ 
++  // Memoize roll dice function
++  const rollDice = useCallback(async () => {
++    if (!gameInstance) return;
++    
++    try {
++      setIsLoading(true);
++      setError(null);
++      
++      // Use proper Chaupar cowrie throw
++      const throwResult = throwCowries();
++      
++      if (throwResult) {
++        // Check if it's AI turn and handle accordingly
++        if (currentGame?.mode === 'ai' && gameState?.currentPlayer === 1) {
++          await handleAITurn(throwResult);
++        }
++      }
++    } catch (err) {
++      setError(err.message);
++      console.error('Dice roll failed:', err);
++    } finally {
++      setIsLoading(false);
++    }
++  }, [gameInstance, throwCowries, currentGame?.mode, gameState?.currentPlayer, handleAITurn]);
++
+   // Memoize end turn handler
+   const handleEndTurn = useCallback(() => {
+     

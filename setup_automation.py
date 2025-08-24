@@ -476,74 +476,97 @@ VITE_DEBUG_MODE=true
                 self.log("Firebase CLI not available for auto-configuration", "WARNING")
                 return False
             
-            # Get project info
-            result = subprocess.run(['firebase', 'projects:list', '--json'], 
+            # Check if user is logged in
+            result = subprocess.run(['firebase', 'projects:list'], 
                                   capture_output=True, text=True, timeout=10)
             if result.returncode != 0:
-                self.log("Could not fetch project information", "WARNING")
+                self.log("Not logged into Firebase CLI for auto-configuration", "WARNING")
                 return False
             
-            # Parse project info
-            try:
-                projects_data = json.loads(result.stdout)
-                project_info = None
-                for project in projects_data.get('projects', []):
-                    if project.get('projectId') == self.project_id:
-                        project_info = project
-                        break
-                
-                if not project_info:
-                    self.log("Could not find project information", "WARNING")
+            # Try to get web app list first
+            result = subprocess.run(['firebase', 'apps:list', '--project', self.project_id], 
+                                  capture_output=True, text=True, timeout=10)
+            if result.returncode != 0:
+                self.log("Could not fetch app list", "WARNING")
+                return False
+            
+            # Check if web app exists
+            if "No apps found" in result.stdout or "WEB" not in result.stdout:
+                self.log("No web app found, creating one...")
+                if self.create_firebase_web_app():
+                    self.log("Web app created successfully")
+                    # Wait a moment for the app to be ready
+                    time.sleep(2)
+                else:
+                    self.log("Failed to create web app", "WARNING")
                     return False
-            except json.JSONDecodeError:
-                self.log("Could not parse project information", "WARNING")
-                return False
             
-            # Get web app configuration
-            result = subprocess.run(['firebase', 'apps:list', '--project', self.project_id, '--json'], 
+            # Get the app ID from the list (parse text output)
+            result = subprocess.run(['firebase', 'apps:list', '--project', self.project_id], 
                                   capture_output=True, text=True, timeout=10)
             if result.returncode != 0:
-                self.log("Could not fetch web app information", "WARNING")
+                self.log("Could not fetch updated app list", "WARNING")
                 return False
             
+            # Extract app ID from output
+            app_id = None
+            for line in result.stdout.split('\n'):
+                if 'WEB' in line:
+                    parts = line.split()
+                    if len(parts) >= 2:
+                        app_id = parts[1]  # App ID is typically in the second column
+                        break
+            
+            if not app_id:
+                self.log("Could not find web app ID", "WARNING")
+                return False
+            
+            self.log(f"Found web app: {app_id}")
+            
+            # Get SDK configuration using the app ID
+            result = subprocess.run(['firebase', 'apps:sdkconfig', 'WEB', app_id, '--project', self.project_id], 
+                                  capture_output=True, text=True, timeout=10)
+            if result.returncode != 0:
+                self.log("Could not fetch SDK configuration", "WARNING")
+                return False
+            
+            # Parse SDK configuration JSON
             try:
-                apps_data = json.loads(result.stdout)
-                web_apps = [app for app in apps_data.get('apps', []) if app.get('platform') == 'WEB']
+                sdk_config = json.loads(result.stdout)
+                api_key = sdk_config.get('apiKey')
+                auth_domain = sdk_config.get('authDomain')
+                storage_bucket = sdk_config.get('storageBucket')
+                messaging_sender_id = sdk_config.get('messagingSenderId')
+                project_id = sdk_config.get('projectId')
+                actual_app_id = sdk_config.get('appId')
                 
-                if not web_apps:
-                    self.log("No web app found, creating one...")
-                    if self.create_firebase_web_app():
-                        self.log("Web app created successfully")
-                        # Refresh web apps list
-                        result = subprocess.run(['firebase', 'apps:list', '--project', self.project_id, '--json'], 
-                                              capture_output=True, text=True, timeout=10)
-                        if result.returncode == 0:
-                            apps_data = json.loads(result.stdout)
-                            web_apps = [app for app in apps_data.get('apps', []) if app.get('platform') == 'WEB']
-                    else:
-                        self.log("Failed to create web app", "WARNING")
-                        return False
+                # Validate required fields
+                if not api_key:
+                    self.log("Could not extract API key from configuration", "WARNING")
+                    return False
                 
-                if web_apps:
-                    web_app = web_apps[0]
-                    api_key = web_app.get('apiKey')
-                    app_id = web_app.get('appId')
-                    auth_domain = web_app.get('authDomain')
-                    storage_bucket = web_app.get('storageBucket')
-                    messaging_sender_id = web_app.get('messagingSenderId')
-                    
-                    if api_key and app_id:
-                        # Update .env.local with actual values
-                        self.update_env_file(api_key, app_id, auth_domain, storage_bucket, messaging_sender_id)
-                        self.log("Firebase configuration updated with actual values")
-                        return True
+                if not actual_app_id:
+                    self.log("Could not extract App ID from configuration", "WARNING")
+                    return False
                 
-            except json.JSONDecodeError:
-                self.log("Could not parse web app information", "WARNING")
+                # Use fallback values if not provided
+                auth_domain = auth_domain or f"{self.project_id}.firebaseapp.com"
+                storage_bucket = storage_bucket or f"{self.project_id}.appspot.com"
+                
+                self.log("Successfully extracted Firebase configuration:")
+                self.log(f"- API Key: {api_key[:20]}...")
+                self.log(f"- Auth Domain: {auth_domain}")
+                self.log(f"- Storage Bucket: {storage_bucket}")
+                self.log(f"- App ID: {actual_app_id}")
+                
+                # Update .env.local with actual values
+                self.update_env_file(api_key, actual_app_id, auth_domain, storage_bucket, messaging_sender_id)
+                self.log("Firebase configuration updated with actual values")
+                return True
+                
+            except json.JSONDecodeError as e:
+                self.log(f"Could not parse SDK configuration: {e}", "WARNING")
                 return False
-            
-            self.log("Could not extract Firebase configuration values", "WARNING")
-            return False
             
         except Exception as e:
             self.log(f"Auto-configuration failed: {e}", "ERROR")
@@ -554,20 +577,26 @@ VITE_DEBUG_MODE=true
         try:
             self.log("Creating Firebase web app...")
             
-            result = subprocess.run(['firebase', 'apps:create', 'WEB', '--project', self.project_id, '--json'], 
-                                  capture_output=True, text=True, timeout=15)
+            # Create a web app with project name
+            app_name = self.project_name or "Chaupar"
             
-            if result.returncode == 0:
-                try:
-                    app_data = json.loads(result.stdout)
-                    if app_data.get('appId'):
-                        self.log("Web app created successfully")
-                        return True
-                except json.JSONDecodeError:
-                    pass
+            # Use the interactive method that works more reliably
+            process = subprocess.Popen(['firebase', 'apps:create', 'web', '--project', self.project_id],
+                                     stdin=subprocess.PIPE, 
+                                     stdout=subprocess.PIPE, 
+                                     stderr=subprocess.PIPE,
+                                     text=True)
             
-            self.log("Failed to create web app automatically", "WARNING")
-            return False
+            # Provide the app name when prompted
+            stdout, stderr = process.communicate(input=f"{app_name}\n")
+            
+            if process.returncode == 0:
+                self.log(f"Web app '{app_name}' created successfully")
+                return True
+            else:
+                self.log("Failed to create web app automatically", "WARNING")
+                self.log(f"You can create it manually at: https://console.firebase.google.com/project/{self.project_id}/settings/general")
+                return False
             
         except Exception as e:
             self.log(f"Failed to create web app: {e}", "ERROR")

@@ -1,10 +1,10 @@
 import { useState, useCallback, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { motion, AnimatePresence, useScroll, useTransform } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Users, User, BookOpen, Crown, Square, LogIn, LogOut, UserCheck, 
   AlertCircle, CheckCircle, X, Play, Star, Trophy, Sparkles, 
-  Target, Zap, Heart, Shield, Globe, Clock, Award
+  Target, Zap, Heart, Shield, Globe, Clock, Award, Copy, Gamepad2
 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import './Home.css';
@@ -12,8 +12,8 @@ import './Home.css';
 const Home = ({ setGameState }) => {
   const [gameCode, setGameCode] = useState('');
   const [skillLevel, setSkillLevel] = useState('intermediate');
-  const [aiCount, setAiCount] = useState(1); // Single AI opponent
-  const [aiProvider, setAiProvider] = useState('ollama'); // 'ollama' or 'openai'
+  const [aiCount, setAiCount] = useState(1);
+  const [aiProvider, setAiProvider] = useState('ollama');
   const [isLoading, setIsLoading] = useState(false);
   const [localError, setLocalError] = useState(null);
   const [successMessage, setSuccessMessage] = useState(null);
@@ -62,12 +62,6 @@ const Home = ({ setGameState }) => {
     }
   }, [localError]);
 
-  // Parallax scroll effects
-  const { scrollY } = useScroll();
-  const headerY = useTransform(scrollY, [0, 300], [0, -100]);
-  const heroScale = useTransform(scrollY, [0, 300], [1, 0.8]);
-  const featuresY = useTransform(scrollY, [0, 500], [0, -50]);
-
   const generateGameCode = useCallback(() => {
     const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
     let result = '';
@@ -115,7 +109,6 @@ const Home = ({ setGameState }) => {
       };
       
       if (mode === 'ai') {
-        // Add multiple AI players
         for (let i = 0; i < aiCount; i++) {
           newGame.players.push({
             id: `ai_${i + 1}`,
@@ -131,7 +124,6 @@ const Home = ({ setGameState }) => {
       setGameState(newGame);
       setSuccessMessage(`${mode === 'ai' ? 'AI game' : 'Multiplayer game'} created successfully!`);
       
-      // Small delay for user feedback
       setTimeout(() => {
         navigate(`/game/${gameId}`);
       }, 500);
@@ -171,7 +163,6 @@ const Home = ({ setGameState }) => {
       setLocalError(null);
       clearError();
       
-      // For now, navigate to the game - in production, validate the game exists
       const upperGameCode = gameCode.toUpperCase();
       navigate(`/game/${upperGameCode}`);
       setSuccessMessage(`Joining game ${upperGameCode}...`);
@@ -202,22 +193,47 @@ const Home = ({ setGameState }) => {
         setSuccessMessage('Playing as guest!');
       }
     } catch (err) {
-      // Error is already handled in AuthContext
       console.error('Sign in failed:', err);
     }
   };
 
   const handleSignOut = async () => {
     try {
-      setLocalError(null);
-      clearError();
       await signOutUser();
       setSuccessMessage('Successfully signed out!');
     } catch (err) {
-      setLocalError('Sign out failed. Please try again.');
       console.error('Sign out failed:', err);
     }
   };
+
+  const copyErrorToClipboard = useCallback(async (errorText) => {
+    try {
+      const errorInfo = `Chaupar Home Error:
+Error: ${errorText}
+URL: ${window.location.href}
+User Agent: ${navigator.userAgent}
+Timestamp: ${new Date().toISOString()}`;
+      
+      await navigator.clipboard.writeText(errorInfo);
+      const button = document.querySelector('.copy-error-btn');
+      if (button) {
+        const originalText = button.textContent;
+        button.textContent = 'Copied!';
+        setTimeout(() => {
+          button.textContent = originalText;
+        }, 2000);
+      }
+    } catch (err) {
+      console.error('Failed to copy error to clipboard:', err);
+      const errorElement = document.querySelector('.error-banner p');
+      if (errorElement) {
+        const range = document.createRange();
+        range.selectNode(errorElement);
+        window.getSelection().removeAllRanges();
+        window.getSelection().addRange(range);
+      }
+    }
+  }, []);
 
   // Show loading state while auth is initializing
   if (authLoading) {
@@ -229,152 +245,74 @@ const Home = ({ setGameState }) => {
     );
   }
 
-  // Current error to display (priority: auth error, then local error)
-  const currentError = authError || localError;
-
   return (
     <div className="home">
-      {/* Hero Section with Parallax */}
-      <motion.div 
-        className="hero-section"
-        style={{ y: headerY, scale: heroScale }}
-        initial={{ opacity: 0, y: -50 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.8, ease: "easeOut" }}
-      >
-        <div className="hero-background">
-          <div className="hero-particles"></div>
-          <div className="hero-glow"></div>
-        </div>
-        
-        <div className="hero-content">
-          <motion.div 
-            className="hero-badge"
-            initial={{ scale: 0, rotate: -180 }}
-            animate={{ scale: 1, rotate: 0 }}
-            transition={{ delay: 0.3, type: "spring", stiffness: 200 }}
-          >
-            <Sparkles size={24} />
-            <span>🕉️ Ancient Indian Strategy 🕉️</span>
-          </motion.div>
-          
-          <motion.h1 
-            className="hero-title"
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.4, duration: 0.8 }}
-          >
-            <span className="title-main">Chaupar</span>
-            <span className="title-subtitle">🎭 The Royal Game of Kings 🎭</span>
-          </motion.h1>
-          
-          <motion.p 
-            className="hero-description"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.6, duration: 0.8 }}
-          >
-            Experience the strategic depth of India's most revered board game, 
-            played by kings and queens for centuries. 🏛️✨
-            Challenge AI opponents or play with friends in this beautifully crafted digital adaptation.
-          </motion.p>
-          
-          <motion.div 
-            className="hero-stats"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.8, duration: 0.8 }}
-          >
-            <div className="stat-item">
-              <Trophy size={20} />
-              <span>Strategic</span>
-            </div>
-            <div className="stat-item">
-              <Heart size={20} />
-              <span>Authentic</span>
-            </div>
-            <div className="stat-item">
-              <Globe size={20} />
-              <span>Multiplayer</span>
-            </div>
-          </motion.div>
-        </div>
-      </motion.div>
-
-      <motion.div 
-        className="home-header"
-        initial={{ opacity: 0, y: -20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5 }}
-      >
-        <div className="header-content">
-          <h1>🎲 Chaupar</h1>
-          <p>Ancient Indian Strategy Game</p>
-        </div>
-        
+      {/* Header */}
+      <header className="home-header">
         <div className="auth-section">
-          {isAuthenticated ? (
-            <div className="user-info">
+          <div className="user-info">
+            {isAuthenticated ? (
               <div className="user-details">
-                {isAnonymous ? (
-                  <div className="guest-indicator">
-                    <UserCheck size={16} />
-                    <span className="user-name">Playing as Guest</span>
-                  </div>
-                ) : (
-                  <div className="google-user">
-                    <CheckCircle size={16} />
-                    <span className="user-name">Welcome, {user.displayName || 'Player'}!</span>
-                  </div>
-                )}
+                <h3>{user.displayName || 'Player'}</h3>
+                <p>{isAnonymous ? 'Guest User' : user.email}</p>
               </div>
+            ) : (
+              <div className="guest-indicator">
+                <User size={16} />
+                Guest User
+              </div>
+            )}
+          </div>
+          
+          <div className="auth-buttons">
+            {isAuthenticated ? (
               <button 
-                className="btn btn-outline"
                 onClick={handleSignOut}
-                disabled={isLoading || isConnecting}
+                className="btn btn-outline"
+                disabled={isConnecting}
               >
                 <LogOut size={16} />
                 Sign Out
               </button>
-            </div>
-          ) : (
-            <div className="auth-buttons">
-              <button 
-                className="btn btn-primary"
-                onClick={() => handleSignIn('google')}
-                disabled={isLoading || isConnecting || isOffline}
-              >
-                <LogIn size={16} />
-                {isConnecting ? 'Connecting...' : 'Sign In with Google'}
-              </button>
-              <button 
-                className="btn btn-secondary"
-                onClick={() => handleSignIn('anonymous')}
-                disabled={isLoading || isConnecting || isOffline}
-              >
-                <UserCheck size={16} />
-                {isConnecting ? 'Connecting...' : 'Play as Guest'}
-              </button>
-            </div>
-          )}
+            ) : (
+              <>
+                <button 
+                  onClick={() => handleSignIn('google')}
+                  className="btn btn-primary"
+                  disabled={isConnecting || isOffline}
+                >
+                  <LogIn size={16} />
+                  Sign In with Google
+                </button>
+                <button 
+                  onClick={() => handleSignIn('anonymous')}
+                  className="btn btn-secondary"
+                  disabled={isConnecting || isOffline}
+                >
+                  <User size={16} />
+                  Play as Guest
+                </button>
+              </>
+            )}
+          </div>
         </div>
-      </motion.div>
+      </header>
 
-      {/* Offline Status Banner */}
-      {isOffline && (
-        <motion.div 
-          className="offline-banner"
-          initial={{ opacity: 0, y: -10 }}
-          animate={{ opacity: 1, y: 0 }}
-        >
-          <AlertCircle size={16} />
-          <span>You are offline. Some features may not work.</span>
-        </motion.div>
-      )}
-
-      {/* Error Messages */}
+      {/* Status Banners */}
       <AnimatePresence>
-        {currentError && (
+        {isOffline && (
+          <motion.div 
+            className="offline-banner"
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+          >
+            <AlertCircle size={16} />
+            <span>You are currently offline. Some features may be limited.</span>
+          </motion.div>
+        )}
+
+        {localError && (
           <motion.div 
             className="error-banner"
             initial={{ opacity: 0, y: -10 }}
@@ -382,22 +320,29 @@ const Home = ({ setGameState }) => {
             exit={{ opacity: 0, y: -10 }}
           >
             <AlertCircle size={16} />
-            <span>{currentError}</span>
-            <button 
-              onClick={() => {
-                setLocalError(null);
-                clearError();
-              }}
-              aria-label="Close error"
-            >
-              <X size={16} />
-            </button>
+            <span>{localError}</span>
+            <div className="error-actions">
+              <button 
+                onClick={() => copyErrorToClipboard(localError)}
+                className="copy-error-btn"
+                aria-label="Copy error"
+                title="Copy error to clipboard"
+              >
+                <Copy size={14} />
+              </button>
+              <button 
+                onClick={() => {
+                  setLocalError(null);
+                  clearError();
+                }}
+                aria-label="Close error"
+              >
+                <X size={16} />
+              </button>
+            </div>
           </motion.div>
         )}
-      </AnimatePresence>
 
-      {/* Success Messages */}
-      <AnimatePresence>
         {successMessage && (
           <motion.div 
             className="success-banner"
@@ -409,7 +354,7 @@ const Home = ({ setGameState }) => {
             <span>{successMessage}</span>
             <button 
               onClick={() => setSuccessMessage(null)}
-              aria-label="Close success message"
+              aria-label="Close message"
             >
               <X size={16} />
             </button>
@@ -417,399 +362,275 @@ const Home = ({ setGameState }) => {
         )}
       </AnimatePresence>
 
-      <div className="home-content">
-        {isAuthenticated ? (
-          <>
-            <motion.div 
-              className="game-modes-section"
-              initial={{ opacity: 0, y: 30 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.3, duration: 0.8 }}
-            >
-                          <div className="section-header">
-              <h2>🎯 Choose Your Adventure</h2>
-              <p>Select your preferred way to experience the ancient wisdom of Chaupar</p>
-            </div>
-              
-              <div className="game-modes">
-                <motion.div 
-                  className="mode-card ai-mode"
-                  initial={{ opacity: 0, x: -30, scale: 0.9 }}
-                  animate={{ opacity: 1, x: 0, scale: 1 }}
-                  transition={{ delay: 0.4, duration: 0.6, type: "spring" }}
-                  whileHover={{ 
-                    scale: 1.05, 
-                    y: -10,
-                    transition: { duration: 0.2 }
-                  }}
-                  whileTap={{ scale: 0.98 }}
-                >
-                  <div className="mode-header">
-                    <div className="mode-icon">
-                      <Users size={40} />
-                      <div className="icon-glow"></div>
-                    </div>
-                    <div className="mode-title">
-                      <h2>AI Opponents</h2>
-                      <span className="mode-subtitle">Challenge intelligent opponents</span>
-                    </div>
-                  </div>
-                
-                <div className="mode-config">
-                  <div className="config-group">
-                    <label>AI Players:</label>
-                    <select 
-                      value={aiCount} 
-                      onChange={(e) => setAiCount(parseInt(e.target.value))}
-                      disabled={isLoading}
-                    >
-                      <option value={1}>1 AI</option>
-                      <option value={2}>2 AI</option>
-                      <option value={3}>3 AI</option>
-                    </select>
-                  </div>
-                  
-                  <div className="config-group">
-                    <label>Skill Level:</label>
-                    <select 
-                      value={skillLevel} 
-                      onChange={(e) => setSkillLevel(e.target.value)}
-                      disabled={isLoading}
-                    >
-                      <option value="basic">Basic</option>
-                      <option value="intermediate">Intermediate</option>
-                      <option value="advanced">Advanced</option>
-                    </select>
-                  </div>
-                  
-                  <div className="config-group">
-                    <label>AI Provider:</label>
-                    <select 
-                      value={aiProvider} 
-                      onChange={(e) => setAiProvider(e.target.value)}
-                      disabled={isLoading}
-                    >
-                      <option value="ollama">Ollama (Local Qwen2.5)</option>
-                      <option value="openai">OpenAI GPT-4</option>
-                    </select>
-                  </div>
-                </div>
-                
-                <button 
-                  className="btn btn-primary mode-btn"
-                  onClick={() => createNewGame('ai')}
-                  disabled={isLoading || isConnecting || isOffline}
-                >
-                  <Play size={18} />
-                  {isLoading ? 'Creating...' : 'Start AI Game'}
-                  <div className="btn-shine"></div>
-                </button>
-              </motion.div>
-
-              <motion.div 
-                className="mode-card multiplayer-mode"
-                initial={{ opacity: 0, x: 30, scale: 0.9 }}
-                animate={{ opacity: 1, x: 0, scale: 1 }}
-                transition={{ delay: 0.6, duration: 0.6, type: "spring" }}
-                whileHover={{ 
-                  scale: 1.05, 
-                  y: -10,
-                  transition: { duration: 0.2 }
-                }}
-                whileTap={{ scale: 0.98 }}
-              >
-                <div className="mode-header">
-                  <div className="mode-icon">
-                    <User size={40} />
-                    <div className="icon-glow"></div>
-                  </div>
-                  <div className="mode-title">
-                    <h2>Multiplayer</h2>
-                    <span className="mode-subtitle">Play with friends online</span>
-                  </div>
-                </div>
-                
-                <div className="mode-features">
-                  <div className="feature-tag">
-                    <Globe size={16} />
-                    <span>Global</span>
-                  </div>
-                  <div className="feature-tag">
-                    <Clock size={16} />
-                    <span>Real-time</span>
-                  </div>
-                  <div className="feature-tag">
-                    <Heart size={16} />
-                    <span>Social</span>
-                  </div>
-                </div>
-                
-                <button 
-                  className="btn btn-secondary mode-btn"
-                  onClick={() => createNewGame('multiplayer')}
-                  disabled={isLoading || isConnecting || isOffline}
-                >
-                  <Users size={18} />
-                  {isLoading ? 'Creating...' : 'Create Multiplayer Game'}
-                  <div className="btn-shine"></div>
-                </button>
-              </motion.div>
-            </div>
-          </motion.div>
-
-            <motion.div 
-              className="join-section"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.6 }}
-            >
-              <h3>Join Existing Game</h3>
-              <div className="join-form">
-                <input
-                  type="text"
-                  placeholder="Enter 6-character game code"
-                  value={gameCode}
-                  onChange={(e) => setGameCode(e.target.value.toUpperCase())}
-                  maxLength={6}
-                  disabled={isLoading || isConnecting}
-                  className={currentError && gameCode ? 'input-error' : ''}
-                  aria-label="Game code input"
-                />
-                <button 
-                  className="btn btn-outline"
-                  onClick={joinGame}
-                  disabled={gameCode.length !== 6 || isLoading || isConnecting || isOffline}
-                >
-                  {isLoading ? 'Joining...' : 'Join Game'}
-                </button>
-              </div>
-            </motion.div>
-          </>
-        ) : (
-          <motion.div 
-            className="auth-required"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2 }}
-          >
-            <div className="auth-message">
-              <h2>Welcome to Chaupar!</h2>
-              <p>Sign in to play the ancient Indian strategy game</p>
-              
-              <div className="auth-options">
-                <button 
-                  className="btn btn-primary btn-large"
-                  onClick={() => handleSignIn('google')}
-                  disabled={isLoading || isConnecting || isOffline}
-                >
-                  <LogIn size={20} />
-                  {isConnecting ? 'Connecting...' : 'Sign In with Google'}
-                </button>
-                
-                <div className="auth-divider">
-                  <span>or</span>
-                </div>
-                
-                <button 
-                  className="btn btn-secondary btn-large"
-                  onClick={() => handleSignIn('anonymous')}
-                  disabled={isLoading || isConnecting || isOffline}
-                >
-                  <UserCheck size={20} />
-                  {isConnecting ? 'Connecting...' : 'Play as Guest'}
-                </button>
-              </div>
-              
-              <p className="auth-note">
-                {isOffline ? 
-                  'You are offline. Please check your connection.' : 
-                  'Choose Google sign-in for full features or play as guest to try the game.'
-                }
-              </p>
-            </div>
-          </motion.div>
-        )}
-
-        <motion.div 
-          className="features-section"
-          style={{ y: featuresY }}
-          initial={{ opacity: 0, y: 30 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.8, duration: 0.8 }}
-        >
-                      <div className="section-header">
-              <h3>🌟 Why Players Love Chaupar</h3>
-              <p>Discover what makes this ancient Indian game so captivating and timeless</p>
-            </div>
+      {/* Hero Section */}
+      <section className="hero-section">
+        <div className="hero-content">
+          <div className="hero-badge">
+            <Gamepad2 size={16} />
+            Ancient Indian Strategy Game
+          </div>
           
-          <div className="features-grid">
-            <motion.div 
-              className="feature-item"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.9, duration: 0.6 }}
-              whileHover={{ y: -5, scale: 1.05 }}
-            >
-              <div className="feature-icon">
-                <BookOpen size={28} />
-                <div className="icon-pulse"></div>
-              </div>
-              <h4>Interactive Tutorial</h4>
-              <span>Learn the game step-by-step with guided instructions</span>
-            </motion.div>
-            
-            <motion.div 
-              className="feature-item"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 1.0, duration: 0.6 }}
-              whileHover={{ y: -5, scale: 1.05 }}
-            >
-              <div className="feature-icon">
-                <Crown size={28} />
-                <div className="icon-pulse"></div>
-              </div>
-              <h4>Authentic Rules</h4>
-              <span>Play with traditional rules passed down through generations</span>
-            </motion.div>
-            
-            <motion.div 
-              className="feature-item"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 1.1, duration: 0.6 }}
-              whileHover={{ y: -5, scale: 1.05 }}
-            >
-              <div className="feature-icon">
-                <Target size={28} />
-                <div className="icon-pulse"></div>
-              </div>
-              <h4>Strategic Depth</h4>
-              <span>Master complex strategies and outthink your opponents</span>
-            </motion.div>
-            
-            <motion.div 
-              className="feature-item"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 1.2, duration: 0.6 }}
-              whileHover={{ y: -5, scale: 1.05 }}
-            >
-              <div className="feature-icon">
-                <Zap size={28} />
-                <div className="icon-pulse"></div>
-              </div>
-              <h4>AI Opponents</h4>
-              <span>Challenge intelligent AI with adjustable difficulty levels</span>
-            </motion.div>
-            
-            <motion.div 
-              className="feature-item"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 1.3, duration: 0.6 }}
-              whileHover={{ y: -5, scale: 1.05 }}
-            >
-              <div className="feature-icon">
-                <Globe size={28} />
-                <div className="icon-pulse"></div>
-              </div>
-              <h4>Global Multiplayer</h4>
-              <span>Connect with players worldwide in real-time matches</span>
-            </motion.div>
-            
-            <motion.div 
-              className="feature-item"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 1.4, duration: 0.6 }}
-              whileHover={{ y: -5, scale: 1.05 }}
-            >
-              <div className="feature-icon">
-                <Award size={28} />
-                <div className="icon-pulse"></div>
-              </div>
-              <h4>Beautiful Design</h4>
-              <span>Immerse yourself in stunning ancient Indian aesthetics</span>
-            </motion.div>
+          <div className="hero-title">
+            <h1 className="title-main">Chaupar</h1>
+            <p className="title-subtitle">The Royal Game of Kings</p>
           </div>
-        </motion.div>
+          
+          <p className="hero-description">
+            Experience the timeless strategy and skill of Chaupar, an ancient Indian board game 
+            that has been played for centuries. Challenge AI opponents or play with friends 
+            in this beautifully crafted digital adaptation.
+          </p>
+          
+          <div className="hero-stats">
+            <div className="stat-item">
+              <span>2-4 Players</span>
+            </div>
+            <div className="stat-item">
+              <span>Strategy & Luck</span>
+            </div>
+            <div className="stat-item">
+              <span>Ancient Heritage</span>
+            </div>
+          </div>
+        </div>
+      </section>
 
-        {/* Call to Action Section */}
-        <motion.div 
-          className="cta-section"
-          initial={{ opacity: 0, y: 30 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 1.5, duration: 0.8 }}
-        >
-          <div className="cta-content">
-            <motion.div 
-              className="cta-icon"
-              animate={{ 
-                rotate: [0, 10, -10, 0],
-                scale: [1, 1.1, 1]
-              }}
-              transition={{ 
-                duration: 2, 
-                repeat: Infinity, 
-                repeatType: "reverse" 
-              }}
+      {/* Game Modes Section */}
+      <section className="game-modes-section">
+        <div className="section-header">
+          <h2>Choose Your Game Mode</h2>
+          <p>Select how you'd like to play Chaupar today</p>
+        </div>
+        
+        <div className="game-modes">
+          <div className="mode-card">
+            <div className="mode-icon">
+              <Users size={32} />
+            </div>
+            <div className="mode-title">
+              <h3>Multiplayer</h3>
+              <p className="mode-subtitle">Play with friends online</p>
+            </div>
+            <div className="mode-features">
+              <span className="feature-tag">Real-time</span>
+              <span className="feature-tag">6-character codes</span>
+              <span className="feature-tag">Friend invites</span>
+            </div>
+            <button 
+              onClick={() => createNewGame('multiplayer')}
+              className="mode-btn"
+              disabled={isLoading || !isAuthenticated}
             >
-              <Star size={48} />
-            </motion.div>
+              <Play size={16} />
+              Create Game
+            </button>
+          </div>
+
+          <div className="mode-card">
+            <div className="mode-icon">
+              <Crown size={32} />
+            </div>
+            <div className="mode-title">
+              <h3>AI Challenge</h3>
+              <p className="mode-subtitle">Test your skills against AI</p>
+            </div>
+            <div className="mode-features">
+              <span className="feature-tag">3 AI opponents</span>
+              <span className="feature-tag">Skill levels</span>
+              <span className="feature-tag">Instant play</span>
+            </div>
             
-            <h3>🚀 Ready to Begin Your Chaupar Journey?</h3>
-            <p>Join thousands of players discovering the strategic brilliance of this ancient Indian game</p>
+            <div className="ai-config">
+              <div className="config-row">
+                <label>AI Skill Level:</label>
+                <select 
+                  value={skillLevel} 
+                  onChange={(e) => setSkillLevel(e.target.value)}
+                  disabled={isLoading}
+                >
+                  <option value="basic">Basic</option>
+                  <option value="intermediate">Intermediate</option>
+                  <option value="advanced">Advanced</option>
+                </select>
+              </div>
+              
+              <div className="config-row">
+                <label>AI Provider:</label>
+                <select 
+                  value={aiProvider} 
+                  onChange={(e) => setAiProvider(e.target.value)}
+                  disabled={isLoading}
+                >
+                  <option value="ollama">Local AI (Ollama)</option>
+                  <option value="openai">OpenAI GPT-4</option>
+                </select>
+              </div>
+            </div>
             
-            {!isAuthenticated && (
-              <motion.div 
-                className="cta-buttons"
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 1.7, duration: 0.6 }}
+            <button 
+              onClick={() => createNewGame('ai')}
+              className="mode-btn"
+              disabled={isLoading || !isAuthenticated}
+            >
+              <Play size={16} />
+              Start AI Game
+            </button>
+          </div>
+        </div>
+      </section>
+
+      {/* Join Game Section */}
+      <section className="join-section">
+        <h3>Join an Existing Game</h3>
+        <p>Have a game code? Enter it below to join your friends</p>
+        
+        <div className="join-form">
+          <input
+            type="text"
+            className={`join-input ${localError && gameCode.length !== 6 ? 'input-error' : ''}`}
+            placeholder="Enter 6-character code"
+            value={gameCode}
+            onChange={(e) => setGameCode(e.target.value.toUpperCase())}
+            maxLength={6}
+            disabled={isLoading || !isAuthenticated}
+          />
+          <button 
+            onClick={joinGame}
+            className="btn btn-primary"
+            disabled={isLoading || !isAuthenticated || gameCode.length !== 6}
+          >
+            <Play size={16} />
+            Join Game
+          </button>
+        </div>
+      </section>
+
+      {/* Auth Required Section */}
+      {!isAuthenticated && (
+        <section className="auth-required">
+          <div className="auth-message">
+            <h3>Sign In to Play</h3>
+            <p>Create an account or sign in to start playing Chaupar</p>
+            
+            <div className="auth-options">
+              <button 
+                onClick={() => handleSignIn('google')}
+                className="btn btn-primary btn-large"
+                disabled={isConnecting || isOffline}
               >
-                <button 
-                  className="btn btn-primary btn-large cta-btn"
-                  onClick={() => handleSignIn('google')}
-                  disabled={isConnecting || isOffline}
-                >
-                  <LogIn size={20} />
-                  Start Playing Now
-                  <div className="btn-shine"></div>
-                </button>
-                
-                <button 
-                  className="btn btn-outline btn-large cta-btn"
-                  onClick={() => handleSignIn('anonymous')}
-                  disabled={isConnecting || isOffline}
-                >
-                  <UserCheck size={20} />
-                  Try as Guest
-                </button>
-              </motion.div>
-            )}
-            
-            {isAuthenticated && (
-              <motion.div 
-                className="cta-buttons"
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 1.7, duration: 0.6 }}
+                <LogIn size={20} />
+                Sign In with Google
+              </button>
+              
+              <div className="auth-divider">
+                <span>or</span>
+              </div>
+              
+              <button 
+                onClick={() => handleSignIn('anonymous')}
+                className="btn btn-outline btn-large"
+                disabled={isConnecting || isOffline}
               >
-                <button 
-                  className="btn btn-primary btn-large cta-btn"
-                  onClick={() => createNewGame('ai')}
-                  disabled={isLoading || isConnecting || isOffline}
-                >
-                  <Play size={20} />
-                  Start New Game
-                  <div className="btn-shine"></div>
-                </button>
-              </motion.div>
+                <User size={20} />
+                Play as Guest
+              </button>
+            </div>
+            
+            <p className="auth-note">
+              Guest accounts are temporary and will be reset when you close the browser
+            </p>
+          </div>
+        </section>
+      )}
+
+      {/* Features Section */}
+      <section className="features-section">
+        <div className="section-header">
+          <h2>Why Play Chaupar?</h2>
+          <p>Discover the unique features that make this ancient game special</p>
+        </div>
+        
+        <div className="features-grid">
+          <div className="feature-item">
+            <div className="feature-icon">
+              <Trophy size={28} />
+            </div>
+            <h4>Strategic Depth</h4>
+            <span>Master the art of piece movement and strategic positioning</span>
+          </div>
+          
+          <div className="feature-item">
+            <div className="feature-icon">
+              <Globe size={28} />
+            </div>
+            <h4>Cultural Heritage</h4>
+            <span>Experience a game that has been played for centuries</span>
+          </div>
+          
+          <div className="feature-item">
+            <div className="feature-icon">
+              <Users size={28} />
+            </div>
+            <h4>Social Gaming</h4>
+            <span>Connect with friends through shared game experiences</span>
+          </div>
+          
+          <div className="feature-item">
+            <div className="feature-icon">
+              <Zap size={28} />
+            </div>
+            <h4>AI Opponents</h4>
+            <span>Challenge intelligent AI players at various skill levels</span>
+          </div>
+          
+          <div className="feature-item">
+            <div className="feature-icon">
+              <Shield size={28} />
+            </div>
+            <h4>Secure & Private</h4>
+            <span>Your games and data are protected with modern security</span>
+          </div>
+          
+          <div className="feature-item">
+            <div className="feature-icon">
+              <Clock size={28} />
+            </div>
+            <h4>Quick Sessions</h4>
+            <span>Enjoy fast-paced games that fit your schedule</span>
+          </div>
+        </div>
+      </section>
+
+      {/* Call to Action */}
+      <section className="cta-section">
+        <div className="cta-content">
+          <div className="cta-icon">🎲</div>
+          <h3>Ready to Play?</h3>
+          <p>Join thousands of players enjoying Chaupar online</p>
+          
+          <div className="cta-buttons">
+            {isAuthenticated ? (
+              <button 
+                onClick={() => createNewGame('ai')}
+                className="btn btn-primary btn-large"
+                disabled={isLoading}
+              >
+                <Play size={20} />
+                Start Playing Now
+              </button>
+            ) : (
+              <button 
+                onClick={() => handleSignIn('google')}
+                className="btn cta-btn btn-large"
+                disabled={isConnecting || isOffline}
+              >
+                <LogIn size={20} />
+                Get Started
+              </button>
             )}
           </div>
-        </motion.div>
-      </div>
+        </div>
+      </section>
     </div>
   );
 };
