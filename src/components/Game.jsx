@@ -130,18 +130,7 @@ const Game = ({ gameState: initialGameState, setGameState }) => {
     }
   }, [gameInstance, throwCowries, currentGame?.mode, gameState?.currentPlayer, handleAITurn]);
 
-  // Memoize AI turn handler
-        } else {
-          endTurn(); // AI passed
-        }
-      } catch (error) {
-        console.error('AI move failed:', error);
-        setError('AI move failed. Please try again.');
-        // Fallback: just end turn
-        endTurn();
-      }
-    }, 1000 + Math.random() * 1000); // Random delay between 1-2 seconds
-  }, [gameState, currentGame?.players, getAvailableMoves, makeMove, checkGameOver, endTurn]);
+
 
   // Memoize end turn handler
   const handleEndTurn = useCallback(() => {
@@ -241,10 +230,6 @@ Timestamp: ${new Date().toISOString()}`;
               Copy Error
             </button>
           </div>
-        </div>
-      </div>
-    );
-  }          <button onClick={() => setError(null)}>Dismiss</button>
         </div>
       </div>
     );

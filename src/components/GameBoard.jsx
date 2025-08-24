@@ -1,33 +1,27 @@
 import { motion } from 'framer-motion';
-import { Crown, Star } from 'lucide-react';
+import { Crown, Star, Home } from 'lucide-react';
 import './GameBoard.css';
 
 const GameBoard = ({ currentPlayer, diceValue, gameStatus }) => {
-  // Traditional Chaupar board has 68 squares arranged in a cross pattern
-  // The board is divided into 4 arms with a central hub
+  // Traditional Chaupar board layout - X-shaped with crossing paths
+  // 4 home areas (corners) + central X-shaped path (68 squares)
   
-  // Define the board layout - each arm has 17 squares
-  const boardLayout = {
-    topArm: Array.from({ length: 17 }, (_, i) => i + 1),      // 1-17
-    leftArm: Array.from({ length: 17 }, (_, i) => i + 18),    // 18-34
-    rightArm: Array.from({ length: 17 }, (_, i) => i + 35),   // 35-51
-    bottomArm: Array.from({ length: 17 }, (_, i) => i + 52),  // 52-68
-    centralHub: [] // Traditional Chaupar has no playable squares in center
-  };
+  // Central path squares (1-68) - shared by all players
+  const centralPath = Array.from({ length: 68 }, (_, i) => i + 1);
   
   // Special squares based on traditional Chaupar rules
   const specialSquares = {
-    1: { type: 'start', player: 0, name: 'Start' },
-    68: { type: 'finish', player: 0, name: 'Finish' },
-    8: { type: 'safe', player: 0, name: 'Safe' },
-    15: { type: 'safe', player: 0, name: 'Safe' },
-    22: { type: 'safe', player: 0, name: 'Safe' },
-    29: { type: 'safe', player: 0, name: 'Safe' },
-    36: { type: 'safe', player: 0, name: 'Safe' },
-    43: { type: 'safe', player: 0, name: 'Safe' },
-    50: { type: 'safe', player: 0, name: 'Safe' },
-    57: { type: 'safe', player: 0, name: 'Safe' },
-    64: { type: 'safe', player: 0, name: 'Safe' }
+    1: { type: 'start', name: 'Start' },
+    68: { type: 'finish', name: 'Finish' },
+    8: { type: 'safe', name: 'Safe' },
+    15: { type: 'safe', name: 'Safe' },
+    22: { type: 'safe', name: 'Safe' },
+    29: { type: 'safe', name: 'Safe' },
+    36: { type: 'safe', name: 'Safe' },
+    43: { type: 'safe', name: 'Safe' },
+    50: { type: 'safe', name: 'Safe' },
+    57: { type: 'safe', name: 'Safe' },
+    64: { type: 'safe', name: 'Safe' }
   };
 
   const getSquareClass = (squareNum) => {
@@ -35,16 +29,13 @@ const GameBoard = ({ currentPlayer, diceValue, gameStatus }) => {
     
     if (specialSquares[squareNum]) {
       classes.push(`square-${specialSquares[squareNum].type}`);
-      if (specialSquares[squareNum].player !== undefined) {
-        classes.push(`player-${specialSquares[squareNum].player}`);
-      }
     }
     
-    // Add traditional Chaupar color classes
-    if (squareNum <= 17) classes.push('top-arm');
-    else if (squareNum <= 34) classes.push('left-arm');
-    else if (squareNum <= 51) classes.push('right-arm');
-    else if (squareNum <= 68) classes.push('bottom-arm');
+    // Add path position classes for proper coloring
+    if (squareNum <= 17) classes.push('path-top');
+    else if (squareNum <= 34) classes.push('path-left');
+    else if (squareNum <= 51) classes.push('path-right');
+    else if (squareNum <= 68) classes.push('path-bottom');
     
     return classes.join(' ');
   };
@@ -62,22 +53,101 @@ const GameBoard = ({ currentPlayer, diceValue, gameStatus }) => {
     return <span className="square-number">{squareNum}</span>;
   };
 
-  const renderArm = (squares, armClass, direction = 'horizontal') => (
-    <div className={`board-arm ${armClass}`}>
-      {squares.map((squareNum) => (
-        <motion.div
-          key={squareNum}
-          className={`board-square ${getSquareClass(squareNum)}`}
-          onClick={() => handleSquareClick(squareNum)}
-          onKeyDown={(e) => e.key === 'Enter' && handleSquareClick(squareNum)}
-          tabIndex={0}
-          role="button"
-          aria-label={`Square ${squareNum}${specialSquares[squareNum] ? ` - ${specialSquares[squareNum].name}` : ''}`}
-          title={`Square ${squareNum}${specialSquares[squareNum] ? ` - ${specialSquares[squareNum].name}` : ''}`}
-        >
-          {getSquareContent(squareNum)}
-        </motion.div>
-      ))}
+  const handleSquareClick = (squareNum) => {
+    console.log(`Clicked square ${squareNum}`);
+    // Handle square click logic here
+  };
+
+  const renderXShapedPath = () => (
+    <div className="x-shaped-path">
+      {/* Top-left diagonal path (1-17) */}
+      <div className="path-diagonal path-top-left">
+        {centralPath.slice(0, 17).map((squareNum) => (
+          <motion.div
+            key={squareNum}
+            className={`board-square ${getSquareClass(squareNum)}`}
+            onClick={() => handleSquareClick(squareNum)}
+            onKeyDown={(e) => e.key === 'Enter' && handleSquareClick(squareNum)}
+            tabIndex={0}
+            role="button"
+            aria-label={`Square ${squareNum}${specialSquares[squareNum] ? ` - ${specialSquares[squareNum].name}` : ''}`}
+            title={`Square ${squareNum}${specialSquares[squareNum] ? ` - ${specialSquares[squareNum].name}` : ''}`}
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+          >
+            {getSquareContent(squareNum)}
+          </motion.div>
+        ))}
+      </div>
+      
+      {/* Top-right diagonal path (18-34) */}
+      <div className="path-diagonal path-top-right">
+        {centralPath.slice(17, 34).map((squareNum) => (
+          <motion.div
+            key={squareNum}
+            className={`board-square ${getSquareClass(squareNum)}`}
+            onClick={() => handleSquareClick(squareNum)}
+            onKeyDown={(e) => e.key === 'Enter' && handleSquareClick(squareNum)}
+            tabIndex={0}
+            role="button"
+            aria-label={`Square ${squareNum}${specialSquares[squareNum] ? ` - ${specialSquares[squareNum].name}` : ''}`}
+            title={`Square ${squareNum}${specialSquares[squareNum] ? ` - ${specialSquares[squareNum].name}` : ''}`}
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+          >
+            {getSquareContent(squareNum)}
+          </motion.div>
+        ))}
+      </div>
+      
+      {/* Central hub - traditional Chaupar design */}
+      <div className="board-central-hub">
+        <div className="central-design">
+          <div className="chaupar-title">Chaupar</div>
+          <div className="chaupar-symbol">🎲</div>
+          <div className="chaupar-subtitle">Ancient Indian Game</div>
+        </div>
+      </div>
+      
+      {/* Bottom-left diagonal path (35-51) */}
+      <div className="path-diagonal path-bottom-left">
+        {centralPath.slice(34, 51).map((squareNum) => (
+          <motion.div
+            key={squareNum}
+            className={`board-square ${getSquareClass(squareNum)}`}
+            onClick={() => handleSquareClick(squareNum)}
+            onKeyDown={(e) => e.key === 'Enter' && handleSquareClick(squareNum)}
+            tabIndex={0}
+            role="button"
+            aria-label={`Square ${squareNum}${specialSquares[squareNum] ? ` - ${specialSquares[squareNum].name}` : ''}`}
+            title={`Square ${squareNum}${specialSquares[squareNum] ? ` - ${specialSquares[squareNum].name}` : ''}`}
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+          >
+            {getSquareContent(squareNum)}
+          </motion.div>
+        ))}
+      </div>
+      
+      {/* Bottom-right diagonal path (52-68) */}
+      <div className="path-diagonal path-bottom-right">
+        {centralPath.slice(51, 68).map((squareNum) => (
+          <motion.div
+            key={squareNum}
+            className={`board-square ${getSquareClass(squareNum)}`}
+            onClick={() => handleSquareClick(squareNum)}
+            onKeyDown={(e) => e.key === 'Enter' && handleSquareClick(squareNum)}
+            tabIndex={0}
+            role="button"
+            aria-label={`Square ${squareNum}${specialSquares[squareNum] ? ` - ${specialSquares[squareNum].name}` : ''}`}
+            title={`Square ${squareNum}${specialSquares[squareNum] ? ` - ${specialSquares[squareNum].name}` : ''}`}
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+          >
+            {getSquareContent(squareNum)}
+          </motion.div>
+        ))}
+      </div>
     </div>
   );
 
@@ -92,52 +162,54 @@ const GameBoard = ({ currentPlayer, diceValue, gameStatus }) => {
           </div>
         </div>
         
-        <div className="board-container-cross">
-          {/* Top arm of the cross */}
-          {renderArm(boardLayout.topArm, 'board-arm-top', 'horizontal')}
-          
-          {/* Middle section with left and right arms */}
-          <div className="board-middle">
-            {/* Left arm */}
-            {renderArm(boardLayout.leftArm, 'board-arm-left', 'vertical')}
-            
-            {/* Central hub - traditional Chaupar design */}
-            <div className="board-central-hub">
-              <div className="central-design">
-                <div className="chaupar-title">Chaupar</div>
-                <div className="chaupar-symbol">🎲</div>
-                <div className="chaupar-subtitle">Ancient Indian Game</div>
-              </div>
+        <div className="board-layout">
+          {/* Top-left home area */}
+          <div className="home-area home-top-left">
+            <div className="home-title">Player 1</div>
+            <div className="home-pieces">
+              <div className="home-piece player1-piece"></div>
+              <div className="home-piece player1-piece"></div>
+              <div className="home-piece player1-piece"></div>
+              <div className="home-piece player1-piece"></div>
             </div>
-            
-            {/* Right arm */}
-            {renderArm(boardLayout.rightArm, 'board-arm-right', 'vertical')}
           </div>
           
-          {/* Bottom arm of the cross */}
-          {renderArm(boardLayout.bottomArm, 'board-arm-bottom', 'horizontal')}
-        </div>
-        
-        {/* Player piece areas around the board - 2 players only */}
-        <div className="player-areas">
-          <div className="player-area player-area-top">
-            <div className="player-pieces">
-              <div className="player-piece black"></div>
-              <div className="player-piece black"></div>
-              <div className="player-piece black"></div>
-              <div className="player-piece black"></div>
+          {/* Top-right home area */}
+          <div className="home-area home-top-right">
+            <div className="home-title">Player 2</div>
+            <div className="home-pieces">
+              <div className="home-piece player2-piece"></div>
+              <div className="home-piece player2-piece"></div>
+              <div className="home-piece player2-piece"></div>
+              <div className="home-piece player2-piece"></div>
             </div>
-            <span>You (Player 1)</span>
           </div>
           
-          <div className="player-area player-area-bottom">
-            <div className="player-pieces">
-              <div className="player-piece red"></div>
-              <div className="player-piece red"></div>
-              <div className="player-piece red"></div>
-              <div className="player-piece red"></div>
+          {/* Central game board with X-shaped paths */}
+          <div className="game-board-center">
+            {renderXShapedPath()}
+          </div>
+          
+          {/* Bottom-left home area */}
+          <div className="home-area home-bottom-left">
+            <div className="home-title">Player 3</div>
+            <div className="home-pieces">
+              <div className="home-piece player3-piece"></div>
+              <div className="home-piece player3-piece"></div>
+              <div className="home-piece player3-piece"></div>
+              <div className="home-piece player3-piece"></div>
             </div>
-            <span>AI Opponent (Player 2)</span>
+          </div>
+          
+          {/* Bottom-right home area */}
+          <div className="home-area home-bottom-right">
+            <div className="home-title">Player 4</div>
+            <div className="home-pieces">
+              <div className="home-piece player4-piece"></div>
+              <div className="home-piece player4-piece"></div>
+              <div className="home-piece player4-piece"></div>
+              <div className="home-piece player4-piece"></div>
+            </div>
           </div>
         </div>
 
@@ -155,20 +227,20 @@ const GameBoard = ({ currentPlayer, diceValue, gameStatus }) => {
             <span>Safe Zone (🌸)</span>
           </div>
           <div className="legend-item">
-            <div className="legend-color top-arm"></div>
-            <span>Top Arm (1-17)</span>
+            <div className="legend-color path-top"></div>
+            <span>Top Path (1-17)</span>
           </div>
           <div className="legend-item">
-            <div className="legend-color left-arm"></div>
-            <span>Left Arm (18-34)</span>
+            <div className="legend-color path-left"></div>
+            <span>Left Path (18-34)</span>
           </div>
           <div className="legend-item">
-            <div className="legend-color right-arm"></div>
-            <span>Right Arm (35-51)</span>
+            <div className="legend-color path-right"></div>
+            <span>Right Path (35-51)</span>
           </div>
           <div className="legend-item">
-            <div className="legend-color bottom-arm"></div>
-            <span>Bottom Arm (52-68)</span>
+            <div className="legend-color path-bottom"></div>
+            <span>Bottom Path (52-68)</span>
           </div>
         </div>
       </div>

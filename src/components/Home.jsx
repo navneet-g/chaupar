@@ -2,9 +2,8 @@ import { useState, useCallback, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
-  Users, User, BookOpen, Crown, Square, LogIn, LogOut, UserCheck, 
-  AlertCircle, CheckCircle, X, Play, Star, Trophy, Sparkles, 
-  Target, Zap, Heart, Shield, Globe, Clock, Award, Copy, Gamepad2
+  Users, User, Crown, LogIn, LogOut, Play, 
+  AlertCircle, CheckCircle, X, Copy, Gamepad2
 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import './Home.css';
@@ -12,8 +11,6 @@ import './Home.css';
 const Home = ({ setGameState }) => {
   const [gameCode, setGameCode] = useState('');
   const [skillLevel, setSkillLevel] = useState('intermediate');
-  const [aiCount, setAiCount] = useState(1);
-  const [aiProvider, setAiProvider] = useState('ollama');
   const [isLoading, setIsLoading] = useState(false);
   const [localError, setLocalError] = useState(null);
   const [successMessage, setSuccessMessage] = useState(null);
@@ -77,52 +74,54 @@ const Home = ({ setGameState }) => {
       return;
     }
 
-    if (!isAuthenticated) {
-      setLocalError('Please sign in to create a game');
-      return;
-    }
-
     try {
       setIsLoading(true);
       setLocalError(null);
       clearError();
       
+      // If user is not authenticated, sign them in anonymously first
+      if (!isAuthenticated) {
+        try {
+          await signInAnonymous();
+          setSuccessMessage('Signed in as guest to start playing!');
+        } catch (signInError) {
+          setLocalError('Failed to sign in as guest. Please try again.');
+          console.error('Anonymous sign in failed:', signInError);
+          return;
+        }
+      }
+      
       const gameId = generateGameCode();
-      const playerName = user.displayName || (isAnonymous ? 'Guest Player' : 'You');
+      const playerName = user?.displayName || (user?.isAnonymous ? 'Guest Player' : 'You');
       
       const newGame = {
         id: gameId,
         mode: mode,
         players: [{ 
-          id: user.uid, 
+          id: user?.uid || 'guest_' + Date.now(), 
           name: playerName, 
           isHost: true,
-          email: user.email || null,
-          isAnonymous: isAnonymous
+          email: user?.email || null,
+          isAnonymous: user?.isAnonymous || true
         }],
         status: 'waiting',
         skillLevel: skillLevel,
-        aiCount: aiCount,
-        aiProvider: aiProvider,
         createdAt: new Date(),
-        createdBy: user.uid
+        createdBy: user?.uid || 'guest_' + Date.now()
       };
       
       if (mode === 'ai') {
-        for (let i = 0; i < aiCount; i++) {
-          newGame.players.push({
-            id: `ai_${i + 1}`,
-            name: `AI ${i + 1} (${skillLevel})`,
-            isAI: true,
-            skillLevel: skillLevel,
-            aiProvider: aiProvider
-          });
-        }
+        newGame.players.push({
+          id: 'ai_1',
+          name: `AI (${skillLevel})`,
+          isAI: true,
+          skillLevel: skillLevel
+        });
         newGame.status = 'playing';
       }
       
       setGameState(newGame);
-      setSuccessMessage(`${mode === 'ai' ? 'AI game' : 'Multiplayer game'} created successfully!`);
+      setSuccessMessage(`${mode === 'ai' ? 'AI game' : 'Multiplayer game'} created!`);
       
       setTimeout(() => {
         navigate(`/game/${gameId}`);
@@ -135,16 +134,11 @@ const Home = ({ setGameState }) => {
     } finally {
       setIsLoading(false);
     }
-  }, [isAuthenticated, isAnonymous, isOffline, user, skillLevel, aiCount, aiProvider, generateGameCode, setGameState, navigate, clearError]);
+  }, [isAuthenticated, isAnonymous, isOffline, user, skillLevel, generateGameCode, setGameState, navigate, clearError, signInAnonymous]);
 
   const joinGame = useCallback(async () => {
     if (isOffline) {
       setLocalError('You are offline. Please check your connection and try again.');
-      return;
-    }
-
-    if (!isAuthenticated) {
-      setLocalError('Please sign in to join a game');
       return;
     }
 
@@ -163,6 +157,18 @@ const Home = ({ setGameState }) => {
       setLocalError(null);
       clearError();
       
+      // If user is not authenticated, sign them in anonymously first
+      if (!isAuthenticated) {
+        try {
+          await signInAnonymous();
+          setSuccessMessage('Signed in as guest to join the game!');
+        } catch (signInError) {
+          setLocalError('Failed to sign in as guest. Please try again.');
+          console.error('Anonymous sign in failed:', signInError);
+          return;
+        }
+      }
+      
       const upperGameCode = gameCode.toUpperCase();
       navigate(`/game/${upperGameCode}`);
       setSuccessMessage(`Joining game ${upperGameCode}...`);
@@ -173,7 +179,7 @@ const Home = ({ setGameState }) => {
     } finally {
       setIsLoading(false);
     }
-  }, [isAuthenticated, isOffline, gameCode, navigate, clearError]);
+  }, [isAuthenticated, isOffline, gameCode, navigate, clearError, signInAnonymous]);
 
   const handleSignIn = async (method = 'google') => {
     if (isOffline) {
@@ -225,13 +231,6 @@ Timestamp: ${new Date().toISOString()}`;
       }
     } catch (err) {
       console.error('Failed to copy error to clipboard:', err);
-      const errorElement = document.querySelector('.error-banner p');
-      if (errorElement) {
-        const range = document.createRange();
-        range.selectNode(errorElement);
-        window.getSelection().removeAllRanges();
-        window.getSelection().addRange(range);
-      }
     }
   }, []);
 
@@ -240,26 +239,26 @@ Timestamp: ${new Date().toISOString()}`;
     return (
       <div className="home-loading">
         <div className="loading-spinner" />
-        <p>Initializing Chaupar...</p>
+        <p>Loading Chaupar...</p>
       </div>
     );
   }
 
   return (
     <div className="home">
-      {/* Header */}
+      {/* Compact Header */}
       <header className="home-header">
         <div className="auth-section">
           <div className="user-info">
             {isAuthenticated ? (
               <div className="user-details">
                 <h3>{user.displayName || 'Player'}</h3>
-                <p>{isAnonymous ? 'Guest User' : user.email}</p>
+                <p>{isAnonymous ? 'Guest' : user.email}</p>
               </div>
             ) : (
               <div className="guest-indicator">
-                <User size={16} />
-                Guest User
+                <User size={14} />
+                Guest
               </div>
             )}
           </div>
@@ -271,28 +270,18 @@ Timestamp: ${new Date().toISOString()}`;
                 className="btn btn-outline"
                 disabled={isConnecting}
               >
-                <LogOut size={16} />
+                <LogOut size={14} />
                 Sign Out
               </button>
             ) : (
-              <>
-                <button 
-                  onClick={() => handleSignIn('google')}
-                  className="btn btn-primary"
-                  disabled={isConnecting || isOffline}
-                >
-                  <LogIn size={16} />
-                  Sign In with Google
-                </button>
-                <button 
-                  onClick={() => handleSignIn('anonymous')}
-                  className="btn btn-secondary"
-                  disabled={isConnecting || isOffline}
-                >
-                  <User size={16} />
-                  Play as Guest
-                </button>
-              </>
+              <button 
+                onClick={() => handleSignIn('google')}
+                className="btn btn-primary"
+                disabled={isConnecting || isOffline}
+              >
+                <LogIn size={14} />
+                Sign In
+              </button>
             )}
           </div>
         </div>
@@ -307,8 +296,8 @@ Timestamp: ${new Date().toISOString()}`;
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -10 }}
           >
-            <AlertCircle size={16} />
-            <span>You are currently offline. Some features may be limited.</span>
+            <AlertCircle size={14} />
+            <span>Offline mode - limited features</span>
           </motion.div>
         )}
 
@@ -319,7 +308,7 @@ Timestamp: ${new Date().toISOString()}`;
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -10 }}
           >
-            <AlertCircle size={16} />
+            <AlertCircle size={14} />
             <span>{localError}</span>
             <div className="error-actions">
               <button 
@@ -328,7 +317,7 @@ Timestamp: ${new Date().toISOString()}`;
                 aria-label="Copy error"
                 title="Copy error to clipboard"
               >
-                <Copy size={14} />
+                <Copy size={12} />
               </button>
               <button 
                 onClick={() => {
@@ -337,7 +326,7 @@ Timestamp: ${new Date().toISOString()}`;
                 }}
                 aria-label="Close error"
               >
-                <X size={16} />
+                <X size={14} />
               </button>
             </div>
           </motion.div>
@@ -350,119 +339,85 @@ Timestamp: ${new Date().toISOString()}`;
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -10 }}
           >
-            <CheckCircle size={16} />
+            <CheckCircle size={14} />
             <span>{successMessage}</span>
             <button 
               onClick={() => setSuccessMessage(null)}
               aria-label="Close message"
             >
-              <X size={16} />
+              <X size={14} />
             </button>
           </motion.div>
         )}
       </AnimatePresence>
 
-      {/* Hero Section */}
+      {/* Hero Section - Ultra Compact */}
       <section className="hero-section">
         <div className="hero-content">
           <div className="hero-badge">
-            <Gamepad2 size={16} />
-            Ancient Indian Strategy Game
+            <Gamepad2 size={14} />
+            Ancient Indian Strategy
           </div>
           
           <div className="hero-title">
             <h1 className="title-main">Chaupar</h1>
-            <p className="title-subtitle">The Royal Game of Kings</p>
+            <p className="title-subtitle">The Royal Game</p>
           </div>
-          
-          <p className="hero-description">
-            Experience the timeless strategy and skill of Chaupar, an ancient Indian board game 
-            that has been played for centuries. Challenge AI opponents or play with friends 
-            in this beautifully crafted digital adaptation.
-          </p>
           
           <div className="hero-stats">
             <div className="stat-item">
               <span>2-4 Players</span>
             </div>
             <div className="stat-item">
-              <span>Strategy & Luck</span>
+              <span>Strategy</span>
             </div>
             <div className="stat-item">
-              <span>Ancient Heritage</span>
+              <span>Ancient</span>
             </div>
           </div>
         </div>
       </section>
 
-      {/* Game Modes Section */}
+      {/* Game Modes - Mobile Optimized */}
       <section className="game-modes-section">
-        <div className="section-header">
-          <h2>Choose Your Game Mode</h2>
-          <p>Select how you'd like to play Chaupar today</p>
-        </div>
-        
         <div className="game-modes">
           <div className="mode-card">
             <div className="mode-icon">
-              <Users size={32} />
+              <Users size={20} />
             </div>
             <div className="mode-title">
               <h3>Multiplayer</h3>
-              <p className="mode-subtitle">Play with friends online</p>
-            </div>
-            <div className="mode-features">
-              <span className="feature-tag">Real-time</span>
-              <span className="feature-tag">6-character codes</span>
-              <span className="feature-tag">Friend invites</span>
+              <p className="mode-subtitle">Play with friends</p>
             </div>
             <button 
               onClick={() => createNewGame('multiplayer')}
               className="mode-btn"
-              disabled={isLoading || !isAuthenticated}
+              disabled={isLoading}
             >
-              <Play size={16} />
+              <Play size={14} />
               Create Game
             </button>
           </div>
 
           <div className="mode-card">
             <div className="mode-icon">
-              <Crown size={32} />
+              <Crown size={20} />
             </div>
             <div className="mode-title">
               <h3>AI Challenge</h3>
-              <p className="mode-subtitle">Test your skills against AI</p>
-            </div>
-            <div className="mode-features">
-              <span className="feature-tag">3 AI opponents</span>
-              <span className="feature-tag">Skill levels</span>
-              <span className="feature-tag">Instant play</span>
+              <p className="mode-subtitle">Test your skills</p>
             </div>
             
             <div className="ai-config">
               <div className="config-row">
-                <label>AI Skill Level:</label>
+                <label>Skill:</label>
                 <select 
                   value={skillLevel} 
                   onChange={(e) => setSkillLevel(e.target.value)}
-                  disabled={isLoading}
                 >
                   <option value="basic">Basic</option>
                   <option value="intermediate">Intermediate</option>
                   <option value="advanced">Advanced</option>
-                </select>
-              </div>
-              
-              <div className="config-row">
-                <label>AI Provider:</label>
-                <select 
-                  value={aiProvider} 
-                  onChange={(e) => setAiProvider(e.target.value)}
-                  disabled={isLoading}
-                >
-                  <option value="ollama">Local AI (Ollama)</option>
-                  <option value="openai">OpenAI GPT-4</option>
                 </select>
               </div>
             </div>
@@ -470,20 +425,18 @@ Timestamp: ${new Date().toISOString()}`;
             <button 
               onClick={() => createNewGame('ai')}
               className="mode-btn"
-              disabled={isLoading || !isAuthenticated}
+              disabled={isLoading}
             >
-              <Play size={16} />
+              <Play size={14} />
               Start AI Game
             </button>
           </div>
         </div>
       </section>
 
-      {/* Join Game Section */}
+      {/* Join Game - Compact */}
       <section className="join-section">
-        <h3>Join an Existing Game</h3>
-        <p>Have a game code? Enter it below to join your friends</p>
-        
+        <h3>Join Game</h3>
         <div className="join-form">
           <input
             type="text"
@@ -492,33 +445,31 @@ Timestamp: ${new Date().toISOString()}`;
             value={gameCode}
             onChange={(e) => setGameCode(e.target.value.toUpperCase())}
             maxLength={6}
-            disabled={isLoading || !isAuthenticated}
+            disabled={isLoading}
           />
           <button 
             onClick={joinGame}
             className="btn btn-primary"
-            disabled={isLoading || !isAuthenticated || gameCode.length !== 6}
+            disabled={isLoading || gameCode.length !== 6}
           >
-            <Play size={16} />
-            Join Game
+            <Play size={14} />
+            Join
           </button>
         </div>
       </section>
 
-      {/* Auth Required Section */}
+      {/* Auth Required - Only show if not authenticated */}
       {!isAuthenticated && (
         <section className="auth-required">
           <div className="auth-message">
             <h3>Sign In to Play</h3>
-            <p>Create an account or sign in to start playing Chaupar</p>
-            
             <div className="auth-options">
               <button 
                 onClick={() => handleSignIn('google')}
                 className="btn btn-primary btn-large"
                 disabled={isConnecting || isOffline}
               >
-                <LogIn size={20} />
+                <LogIn size={16} />
                 Sign In with Google
               </button>
               
@@ -531,106 +482,13 @@ Timestamp: ${new Date().toISOString()}`;
                 className="btn btn-outline btn-large"
                 disabled={isConnecting || isOffline}
               >
-                <User size={20} />
+                <User size={16} />
                 Play as Guest
               </button>
             </div>
-            
-            <p className="auth-note">
-              Guest accounts are temporary and will be reset when you close the browser
-            </p>
           </div>
         </section>
       )}
-
-      {/* Features Section */}
-      <section className="features-section">
-        <div className="section-header">
-          <h2>Why Play Chaupar?</h2>
-          <p>Discover the unique features that make this ancient game special</p>
-        </div>
-        
-        <div className="features-grid">
-          <div className="feature-item">
-            <div className="feature-icon">
-              <Trophy size={28} />
-            </div>
-            <h4>Strategic Depth</h4>
-            <span>Master the art of piece movement and strategic positioning</span>
-          </div>
-          
-          <div className="feature-item">
-            <div className="feature-icon">
-              <Globe size={28} />
-            </div>
-            <h4>Cultural Heritage</h4>
-            <span>Experience a game that has been played for centuries</span>
-          </div>
-          
-          <div className="feature-item">
-            <div className="feature-icon">
-              <Users size={28} />
-            </div>
-            <h4>Social Gaming</h4>
-            <span>Connect with friends through shared game experiences</span>
-          </div>
-          
-          <div className="feature-item">
-            <div className="feature-icon">
-              <Zap size={28} />
-            </div>
-            <h4>AI Opponents</h4>
-            <span>Challenge intelligent AI players at various skill levels</span>
-          </div>
-          
-          <div className="feature-item">
-            <div className="feature-icon">
-              <Shield size={28} />
-            </div>
-            <h4>Secure & Private</h4>
-            <span>Your games and data are protected with modern security</span>
-          </div>
-          
-          <div className="feature-item">
-            <div className="feature-icon">
-              <Clock size={28} />
-            </div>
-            <h4>Quick Sessions</h4>
-            <span>Enjoy fast-paced games that fit your schedule</span>
-          </div>
-        </div>
-      </section>
-
-      {/* Call to Action */}
-      <section className="cta-section">
-        <div className="cta-content">
-          <div className="cta-icon">🎲</div>
-          <h3>Ready to Play?</h3>
-          <p>Join thousands of players enjoying Chaupar online</p>
-          
-          <div className="cta-buttons">
-            {isAuthenticated ? (
-              <button 
-                onClick={() => createNewGame('ai')}
-                className="btn btn-primary btn-large"
-                disabled={isLoading}
-              >
-                <Play size={20} />
-                Start Playing Now
-              </button>
-            ) : (
-              <button 
-                onClick={() => handleSignIn('google')}
-                className="btn cta-btn btn-large"
-                disabled={isConnecting || isOffline}
-              >
-                <LogIn size={20} />
-                Get Started
-              </button>
-            )}
-          </div>
-        </div>
-      </section>
     </div>
   );
 };

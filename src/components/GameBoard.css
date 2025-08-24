@@ -1,47 +1,32 @@
+/* Traditional Chaupar Game Board - X-Shaped Layout */
 .game-board {
-  background: linear-gradient(135deg, #8B4513, #A0522D);
+  background: linear-gradient(135deg, #2C1810 0%, #4A2C2A 50%, #8B4513 100%);
   border-radius: 20px;
-  padding: 30px;
-  border: 3px solid #DAA520;
+  padding: 20px;
+  border: 4px solid #DAA520;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
   max-width: 1200px;
   margin: 0 auto;
   position: relative;
-}
-
-.game-board::before {
-  content: '🕉️';
-  position: absolute;
-  top: 10px;
-  left: 10px;
-  font-size: 1.5rem;
-  opacity: 0.7;
-}
-
-.game-board::after {
-  content: '🕉️';
-  position: absolute;
-  top: 10px;
-  right: 10px;
-  font-size: 1.5rem;
-  opacity: 0.7;
+  color: #F5DEB3;
+  font-family: 'Palatino', 'Georgia', 'Times New Roman', serif;
 }
 
 .board-container {
   display: flex;
   flex-direction: column;
-  gap: 25px;
+  gap: 20px;
 }
 
 .board-header {
   text-align: center;
-  margin-bottom: 25px;
+  margin-bottom: 20px;
 }
 
 .board-header h2 {
   color: #FFD700;
-  font-size: 2.2rem;
-  margin-bottom: 15px;
+  font-size: 2rem;
+  margin-bottom: 10px;
   text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.7);
   font-family: 'Times New Roman', serif;
 }
@@ -59,64 +44,186 @@
   font-weight: bold;
 }
 
-/* Traditional Chaupar Cross Layout */
-.board-container-cross {
+/* Main Board Layout - Traditional Chaupar X-Shape */
+.board-layout {
+  display: grid;
+  grid-template-areas: 
+    "home1  board  home2"
+    "home1  board  home2"
+    "home3  board  home4"
+    "home3  board  home4";
+  grid-template-columns: 200px 1fr 200px;
+  grid-template-rows: 150px 1fr 150px;
+  gap: 20px;
+  align-items: center;
+  justify-items: center;
+}
+
+/* Home Areas - 4 corners */
+.home-area {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 15px;
-  background: linear-gradient(135deg, #654321, #8B4513);
-  border-radius: 20px;
-  border: 4px solid #DAA520;
-  padding: 25px;
-  box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.3);
-}
-
-/* Board Arms */
-.board-arm {
-  display: flex;
-  gap: 8px;
-  align-items: center;
-}
-
-.board-arm-top {
   justify-content: center;
+  padding: 15px;
+  border-radius: 15px;
+  border: 3px solid #DAA520;
+  background: linear-gradient(135deg, #8B4513 0%, #A0522D 100%);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+  min-width: 160px;
+  min-height: 120px;
+}
+
+.home-top-left {
+  grid-area: home1;
+  background: linear-gradient(135deg, #8B0000 0%, #DC143C 100%);
+}
+
+.home-top-right {
+  grid-area: home2;
+  background: linear-gradient(135deg, #006400 0%, #228B22 100%);
+}
+
+.home-bottom-left {
+  grid-area: home3;
+  background: linear-gradient(135deg, #4B0082 0%, #8A2BE2 100%);
+}
+
+.home-bottom-right {
+  grid-area: home4;
+  background: linear-gradient(135deg, #FF8C00 0%, #FFA500 100%);
+}
+
+.home-title {
+  font-size: 1rem;
+  font-weight: bold;
+  color: #FFD700;
   margin-bottom: 10px;
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.7);
 }
 
-.board-arm-bottom {
-  justify-content: center;
-  margin-top: 10px;
+.home-pieces {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px;
 }
 
-.board-middle {
+.home-piece {
+  width: 25px;
+  height: 25px;
+  border-radius: 50%;
+  border: 2px solid #DAA520;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.player1-piece {
+  background: #FFD700;
+}
+
+.player2-piece {
+  background: #00FF00;
+}
+
+.player3-piece {
+  background: #FF69B4;
+}
+
+.player4-piece {
+  background: #FF4500;
+}
+
+/* Central Game Board */
+.game-board-center {
+  grid-area: board;
   display: flex;
   align-items: center;
-  gap: 15px;
-  min-height: 200px;
+  justify-content: center;
+  background: linear-gradient(135deg, #654321 0%, #8B4513 100%);
+  border-radius: 15px;
+  border: 3px solid #DAA520;
+  padding: 20px;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
+  min-height: 400px;
+  min-width: 400px;
 }
 
-.board-arm-left {
-  flex-direction: column;
-  margin-right: 10px;
+/* X-Shaped Path Layout */
+.x-shaped-path {
+  display: grid;
+  grid-template-areas: 
+    "top-left    .     top-right"
+    "    .    center     .    "
+    "bottom-left .   bottom-right";
+  grid-template-columns: 1fr auto 1fr;
+  grid-template-rows: 1fr auto 1fr;
+  gap: 10px;
+  align-items: center;
+  justify-items: center;
+  width: 100%;
+  height: 100%;
 }
 
-.board-arm-right {
+/* Diagonal Paths */
+.path-diagonal {
+  display: flex;
+  gap: 4px;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Top-left diagonal path (1-17) - from top-left to center */
+.path-top-left {
+  grid-area: top-left;
   flex-direction: column;
-  margin-left: 10px;
+  transform: rotate(-45deg);
+  transform-origin: bottom right;
+  margin-bottom: 20px;
+  margin-right: 20px;
+}
+
+/* Top-right diagonal path (18-34) - from top-right to center */
+.path-top-right {
+  grid-area: top-right;
+  flex-direction: column;
+  transform: rotate(45deg);
+  transform-origin: bottom left;
+  margin-bottom: 20px;
+  margin-left: 20px;
+}
+
+/* Bottom-left diagonal path (35-51) - from bottom-left to center */
+.path-bottom-left {
+  grid-area: bottom-left;
+  flex-direction: column;
+  transform: rotate(45deg);
+  transform-origin: top right;
+  margin-top: 20px;
+  margin-right: 20px;
+}
+
+/* Bottom-right diagonal path (52-68) - from bottom-right to center */
+.path-bottom-right {
+  grid-area: bottom-right;
+  flex-direction: column;
+  transform: rotate(-45deg);
+  transform-origin: top left;
+  margin-top: 20px;
+  margin-left: 20px;
 }
 
 /* Central Hub */
 .board-central-hub {
+  grid-area: center;
   display: flex;
   align-items: center;
   justify-content: center;
-  min-width: 140px;
-  min-height: 140px;
-  background: linear-gradient(135deg, #FF69B4, #FF1493);
+  width: 120px;
+  height: 120px;
+  background: linear-gradient(135deg, #FF69B4 0%, #FF1493 100%);
   border: 4px solid #FFD700;
   border-radius: 20px;
   box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
+  z-index: 10;
 }
 
 .central-design {
@@ -131,22 +238,22 @@
 }
 
 .chaupar-title {
-  font-size: 1.5rem;
+  font-size: 1.3rem;
   font-weight: bold;
   color: #FFD700;
   text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.7);
-  margin-bottom: 10px;
+  margin-bottom: 8px;
   font-family: 'Times New Roman', serif;
 }
 
 .chaupar-symbol {
-  font-size: 2.5rem;
-  margin: 10px 0;
+  font-size: 2rem;
+  margin: 8px 0;
   filter: drop-shadow(2px 2px 4px rgba(0, 0, 0, 0.5));
 }
 
 .chaupar-subtitle {
-  font-size: 0.8rem;
+  font-size: 0.7rem;
   color: #F5DEB3;
   font-style: italic;
   text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.7);
@@ -155,306 +262,349 @@
 /* Individual Board Squares */
 .board-square {
   aspect-ratio: 1;
-  width: 40px;
-  height: 40px;
+  width: 28px;
+  height: 28px;
   border: 2px solid #8B4513;
-  border-radius: 8px;
+  border-radius: 6px;
   display: flex;
   align-items: center;
   justify-content: center;
   font-weight: bold;
   color: #8B4513;
-  font-size: 0.8rem;
+  font-size: 0.6rem;
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: all 0.2s ease;
   position: relative;
   overflow: hidden;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+  user-select: none;
 }
 
-/* Traditional Chaupar Color Scheme */
-.board-square.top-arm {
-  background: linear-gradient(135deg, #FFFFFF, #F0F0F0);
-  border-color: #8B4513;
+/* Traditional Chaupar Path Colors */
+.board-square.path-top {
+  background: linear-gradient(135deg, #FFE4B5 0%, #F5DEB3 100%);
+  border-color: #DAA520;
+  color: #8B4513;
 }
 
-.board-square.left-arm {
-  background: linear-gradient(135deg, #800080, #9932CC);
-  border-color: #4B0082;
-  color: white;
+.board-square.path-left {
+  background: linear-gradient(135deg, #DDA0DD 0%, #D8BFD8 100%);
+  border-color: #9932CC;
+  color: #4B0082;
 }
 
-.board-square.right-arm {
-  background: linear-gradient(135deg, #008000, #228B22);
-  border-color: #006400;
-  color: white;
+.board-square.path-right {
+  background: linear-gradient(135deg, #90EE90 0%, #98FB98 100%);
+  border-color: #228B22;
+  color: #006400;
 }
 
-.board-square.bottom-arm {
-  background: linear-gradient(135deg, #FF69B4, #FF1493);
-  border-color: #C71585;
-  color: white;
+.board-square.path-bottom {
+  background: linear-gradient(135deg, #FFB6C1 0%, #FFC0CB 100%);
+  border-color: #FF69B4;
+  color: #C71585;
 }
 
 /* Special Square Styles */
 .square-start {
-  background: linear-gradient(135deg, #FFD700, #FFA500) !important;
+  background: linear-gradient(135deg, #FFD700 0%, #FFA500 100%) !important;
+  border-color: #FF8C00 !important;
   color: #8B4513 !important;
-  font-weight: bold;
-  border-color: #FFD700;
-  box-shadow: 0 4px 15px rgba(255, 215, 0, 0.4);
 }
 
 .square-finish {
-  background: linear-gradient(135deg, #32CD32, #228B22) !important;
-  color: white !important;
-  font-weight: bold;
-  border-color: #32CD32;
-  box-shadow: 0 4px 15px rgba(50, 205, 50, 0.4);
+  background: linear-gradient(135deg, #32CD32 0%, #00FF00 100%) !important;
+  border-color: #228B22 !important;
+  color: #006400 !important;
 }
 
 .square-safe {
-  background: linear-gradient(135deg, #87CEEB, #4682B4) !important;
-  color: white !important;
+  background: linear-gradient(135deg, #87CEEB 0%, #00BFFF 100%) !important;
+  border-color: #4169E1 !important;
+  color: #000080 !important;
+}
+
+/* Square Content */
+.square-number {
   font-weight: bold;
-  border-color: #87CEEB;
-  box-shadow: 0 4px 15px rgba(135, 206, 235, 0.4);
+  font-size: 0.5rem;
 }
 
 .safe-indicator {
-  color: #4682B4;
-  font-size: 1.2rem;
-  font-weight: bold;
+  font-size: 0.7rem;
+  filter: drop-shadow(1px 1px 2px rgba(0, 0, 0, 0.5));
 }
 
-.square-number {
-  font-weight: bold;
-  font-size: 0.75rem;
-}
-
-/* Hover Effects */
+/* Interactive States */
 .board-square:hover {
   transform: scale(1.1);
-  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
   z-index: 10;
 }
 
-.board-square::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: linear-gradient(45deg, transparent 30%, rgba(255, 255, 255, 0.2) 50%, transparent 70%);
-  transform: translateX(-100%);
-  transition: transform 0.6s ease;
+.board-square:active {
+  transform: scale(0.95);
 }
 
-.board-square:hover::before {
-  transform: translateX(100%);
-}
-
-/* Player Areas */
-.player-areas {
-  position: relative;
-  width: 100%;
-  margin-top: 25px;
-}
-
-.player-area {
-  position: absolute;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 10px;
-  padding: 15px;
-  background: linear-gradient(135deg, rgba(139, 69, 19, 0.8), rgba(160, 82, 45, 0.8));
-  border-radius: 15px;
-  border: 3px solid #DAA520;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
-}
-
-.player-area-top {
-  top: -100px;
-  left: 50%;
-  transform: translateX(-50%);
-}
-
-.player-area-bottom {
-  bottom: -100px;
-  left: 50%;
-  transform: translateX(-50%);
-}
-
-.player-pieces {
-  display: flex;
-  gap: 8px;
-  flex-wrap: wrap;
-  justify-content: center;
-}
-
-.player-piece {
-  width: 25px;
-  height: 25px;
-  border-radius: 50%;
-  border: 3px solid #8B4513;
-  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.4);
-  transition: all 0.3s ease;
-}
-
-.player-piece:hover {
-  transform: scale(1.1);
-}
-
-.player-piece.black {
-  background: linear-gradient(135deg, #2C2C2C, #404040);
-  border-color: #FFD700;
-}
-
-.player-piece.red {
-  background: linear-gradient(135deg, #DC143C, #B22222);
-  border-color: #32CD32;
-}
-
-.player-area span {
-  color: #FFD700;
-  font-size: 0.9rem;
-  font-weight: bold;
-  text-align: center;
-  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.7);
+.board-square:focus {
+  outline: 3px solid #FFD700;
+  outline-offset: 2px;
 }
 
 /* Board Legend */
 .board-legend {
   display: flex;
-  justify-content: center;
-  gap: 25px;
   flex-wrap: wrap;
-  margin-top: 25px;
-  padding: 20px;
-  background: rgba(139, 69, 19, 0.6);
-  border-radius: 15px;
-  border: 2px solid #DAA520;
+  justify-content: center;
+  gap: 15px;
+  padding: 15px;
+  background: rgba(139, 69, 19, 0.2);
+  border-radius: 10px;
+  border: 1px solid #DAA520;
 }
 
 .legend-item {
   display: flex;
   align-items: center;
-  gap: 10px;
-  color: #F5DEB3;
+  gap: 8px;
   font-size: 0.9rem;
-  font-weight: bold;
+  color: #F5DEB3;
 }
 
 .legend-color {
-  width: 25px;
-  height: 25px;
-  border-radius: 6px;
-  border: 2px solid #8B4513;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+  width: 20px;
+  height: 20px;
+  border-radius: 4px;
+  border: 1px solid #DAA520;
 }
 
 .legend-color.start {
-  background: linear-gradient(45deg, #FFD700, #FFA500);
+  background: linear-gradient(135deg, #FFD700 0%, #FFA500 100%);
 }
 
 .legend-color.finish {
-  background: linear-gradient(45deg, #32CD32, #228B22);
+  background: linear-gradient(135deg, #32CD32 0%, #00FF00 100%);
 }
 
 .legend-color.safe {
-  background: linear-gradient(45deg, #87CEEB, #4682B4);
+  background: linear-gradient(135deg, #87CEEB 0%, #00BFFF 100%);
 }
 
-.legend-color.top-arm {
-  background: linear-gradient(45deg, #FFFFFF, #F0F0F0);
+.legend-color.path-top {
+  background: linear-gradient(135deg, #FFE4B5 0%, #F5DEB3 100%);
 }
 
-.legend-color.left-arm {
-  background: linear-gradient(45deg, #800080, #9932CC);
+.legend-color.path-left {
+  background: linear-gradient(135deg, #DDA0DD 0%, #D8BFD8 100%);
 }
 
-.legend-color.right-arm {
-  background: linear-gradient(45deg, #008000, #228B22);
+.legend-color.path-right {
+  background: linear-gradient(135deg, #90EE90 0%, #98FB98 100%);
 }
 
-.legend-color.bottom-arm {
-  background: linear-gradient(45deg, #FF69B4, #FF1493);
+.legend-color.path-bottom {
+  background: linear-gradient(135deg, #FFB6C1 0%, #FFC0CB 100%);
 }
 
 /* Responsive Design */
 @media (max-width: 1200px) {
-  .board-container-cross {
-    padding: 20px;
+  .board-layout {
+    grid-template-columns: 150px 1fr 150px;
+    grid-template-rows: 120px 1fr 120px;
+    gap: 15px;
+  }
+  
+  .home-area {
+    min-width: 120px;
+    min-height: 100px;
+    padding: 10px;
+  }
+  
+  .game-board-center {
+    min-height: 350px;
+    min-width: 350px;
   }
   
   .board-square {
-    width: 35px;
-    height: 35px;
-    font-size: 0.7rem;
+    width: 24px;
+    height: 24px;
+    font-size: 0.5rem;
   }
   
-  .central-squares {
-    gap: 6px;
-    padding: 8px;
+  .board-central-hub {
+    width: 100px;
+    height: 100px;
+  }
+  
+  .chaupar-title {
+    font-size: 1.1rem;
+  }
+  
+  .chaupar-symbol {
+    font-size: 1.6rem;
   }
 }
 
 @media (max-width: 900px) {
-  .board-container-cross {
-    padding: 15px;
+  .board-layout {
+    grid-template-areas: 
+      "home1  home2"
+      "board  board"
+      "home3  home4";
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: auto 1fr auto;
+    gap: 15px;
+  }
+  
+  .home-area {
+    min-width: 100px;
+    min-height: 80px;
+    padding: 8px;
+  }
+  
+  .home-title {
+    font-size: 0.8rem;
+  }
+  
+  .home-piece {
+    width: 20px;
+    height: 20px;
+  }
+  
+  .game-board-center {
+    min-height: 300px;
+    min-width: 300px;
   }
   
   .board-square {
-    width: 30px;
-    height: 30px;
-    font-size: 0.65rem;
-    gap: 6px;
+    width: 20px;
+    height: 20px;
+    font-size: 0.4rem;
   }
   
-  .board-middle {
-    gap: 10px;
+  .board-central-hub {
+    width: 80px;
+    height: 80px;
   }
   
-  .board-legend {
-    gap: 20px;
+  .chaupar-title {
+    font-size: 0.9rem;
+  }
+  
+  .chaupar-symbol {
+    font-size: 1.3rem;
+  }
+  
+  .chaupar-subtitle {
+    font-size: 0.6rem;
   }
 }
 
 @media (max-width: 600px) {
   .game-board {
-    padding: 20px;
+    padding: 15px;
   }
   
-  .board-container-cross {
-    padding: 10px;
-  }
-  
-  .board-square {
-    width: 25px;
-    height: 25px;
-    font-size: 0.6rem;
-    gap: 4px;
+  .board-header h2 {
+    font-size: 1.5rem;
   }
   
   .board-info {
     flex-direction: column;
-    gap: 15px;
+    gap: 10px;
+    font-size: 1rem;
+  }
+  
+  .board-layout {
+    gap: 10px;
+  }
+  
+  .home-area {
+    min-width: 80px;
+    min-height: 60px;
+    padding: 6px;
+  }
+  
+  .home-title {
+    font-size: 0.7rem;
+    margin-bottom: 6px;
+  }
+  
+  .home-pieces {
+    gap: 4px;
+  }
+  
+  .home-piece {
+    width: 16px;
+    height: 16px;
+  }
+  
+  .game-board-center {
+    min-height: 250px;
+    min-width: 250px;
+    padding: 15px;
+  }
+  
+  .board-square {
+    width: 16px;
+    height: 16px;
+    font-size: 0.3rem;
+  }
+  
+  .board-central-hub {
+    width: 60px;
+    height: 60px;
+    padding: 8px;
+  }
+  
+  .chaupar-title {
+    font-size: 0.7rem;
+    margin-bottom: 4px;
+  }
+  
+  .chaupar-symbol {
+    font-size: 1rem;
+    margin: 4px 0;
+  }
+  
+  .chaupar-subtitle {
+    font-size: 0.5rem;
   }
   
   .board-legend {
-    flex-direction: column;
-    align-items: center;
-    gap: 15px;
-  }
-  
-  .player-area {
+    gap: 10px;
     padding: 10px;
   }
   
-  .player-piece {
-    width: 20px;
-    height: 20px;
+  .legend-item {
+    font-size: 0.7rem;
+  }
+  
+  .legend-color {
+    width: 16px;
+    height: 16px;
+  }
+}
+
+/* Touch Device Optimizations */
+@media (hover: none) and (pointer: coarse) {
+  .board-square:hover {
+    transform: none;
+  }
+  
+  .board-square:active {
+    transform: scale(0.9);
+  }
+}
+
+/* Accessibility */
+@media (prefers-reduced-motion: reduce) {
+  .board-square {
+    transition: none;
+  }
+  
+  .board-square:hover,
+  .board-square:active {
+    transform: none;
   }
 }
