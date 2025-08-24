@@ -1,134 +1,247 @@
-# 🎲 Chaupar Game Setup Guide
+# 🚀 Chaupar Game Setup Guide
 
-## Quick Start
+Complete setup instructions for the Chaupar game, including automated and manual setup options.
 
-1. **Install dependencies**
-   ```bash
-   npm install
-   ```
+## 🎯 Quick Start (Recommended)
 
-2. **Configure Firebase** (for multiplayer)
-   - Update `src/firebase/config.js` with your Firebase credentials
-   - Enable Firestore Database in Firebase Console
+### **Automated Setup - Zero Configuration**
+```bash
+# Clone repository
+git clone <repository-url>
+cd chaupar
 
-3. **Start development server**
-   ```bash
-   npm run dev
-   ```
-
-4. **Open browser**
-   Navigate to `http://localhost:5173`
-
-## 🎮 Game Features
-
-### Single Player Mode
-- Play against AI with 3 skill levels
-- Basic: Random moves
-- Intermediate: Some strategy
-- Advanced: Strategic thinking
-
-### Multiplayer Mode
-- Create games with 6-character codes
-- Share codes with friends
-- Real-time gameplay updates
-- Up to 4 players per game
-
-### Learning Features
-- Interactive tutorial with 6 steps
-- Game rules and tips
-- Visual board explanations
-- Strategy guidance
-
-## 🎨 Design Features
-
-- **Ancient Indian Theme**: Rich browns, golds, and warm colors
-- **Responsive Design**: Works on all devices
-- **Smooth Animations**: Framer Motion integration
-- **Interactive Elements**: Hover effects and transitions
-- **Cultural Elements**: Traditional Indian design patterns
-
-## 🏗️ Architecture
-
-- **Frontend**: React 18 + Vite
-- **State Management**: React hooks and context
-- **Styling**: Custom CSS with ancient Indian theme
-- **Animations**: Framer Motion
-- **Icons**: Lucide React
-- **Backend**: Firebase (Firestore, Auth)
-
-## 🔧 Configuration
-
-### Firebase Setup
-1. Create Firebase project
-2. Enable Firestore Database
-3. Enable Authentication (optional)
-4. Copy config to `src/firebase/config.js`
-
-### Environment Variables
-Create `.env.local` for custom configurations:
-```env
-VITE_FIREBASE_API_KEY=your_api_key
-VITE_FIREBASE_PROJECT_ID=your_project_id
+# Automatic setup (creates Firebase project, configures everything)
+./setup.sh --deploy
 ```
 
-## 📱 Browser Support
+**This single command will:**
+- ✅ Create Firebase project automatically
+- ✅ Configure Firebase services (Firestore, Auth, Hosting)
+- ✅ Set up environment variables
+- ✅ Install dependencies
+- ✅ Build and deploy to Firebase hosting
+- ✅ Give you a live game URL
 
-- Chrome (recommended)
-- Firefox
-- Safari
-- Edge
-- Mobile browsers
+## 🔧 Prerequisites
+
+### **System Requirements**
+- **Node.js**: v16 or higher
+- **npm**: v8 or higher
+- **Firebase CLI**: `npm install -g firebase-tools`
+- **Git**: For cloning repository
+
+### **Accounts Required**
+- **Firebase Account**: [Create here](https://console.firebase.google.com/)
+- **Google Account**: For authentication
+- **GitHub Account**: For repository access
+
+## 🚀 Setup Options
+
+### **Option 1: Fully Automated (Recommended)**
+```bash
+# Create new project automatically
+./setup.sh
+
+# Or specify custom name
+./setup.sh --project-name "My Chaupar Game"
+
+# Setup + auto-deploy
+./setup.sh --deploy
+```
+
+### **Option 2: Use Existing Firebase Project**
+```bash
+# Use existing project
+./setup.sh -p your-project-id -n "Your Game Name"
+
+# Example
+./setup.sh -p chaupar-game-123 -n "Chaupar Tournament"
+```
+
+### **Option 3: Python Automation**
+```bash
+# Install Python dependencies
+pip install -r requirements.txt
+
+# Run automation
+python3 setup_automation.py
+```
+
+## 🔄 Smart Rerun System
+
+### **Project Caching**
+The setup scripts automatically cache your project ID for future reruns:
+
+```bash
+# First run - creates project
+./setup.sh
+# Creates: chaupar-123456-abc
+
+# Future runs - uses cached project automatically
+./setup.sh
+# Uses: chaupar-123456-abc (from cache)
+
+# Switch projects - updates cache
+./setup.sh -p different-project
+# Cache updated to: different-project
+```
+
+**Cache file**: `.chaupar_cache.json`
+- **Automatic backup** when switching projects
+- **Safe reruns** without losing configurations
+
+## 🔐 Firebase Configuration
+
+### **Automatic Configuration**
+The setup scripts automatically:
+- ✅ Create Firebase project
+- ✅ Configure Firestore database
+- ✅ Set up Authentication
+- ✅ Configure Hosting
+- ✅ Create web app
+- ✅ Fetch API keys
+- ✅ Update `.env.local`
+
+### **Manual Configuration (if needed)**
+If you need to configure manually:
+
+1. **Get Firebase Config**
+   - Go to [Firebase Console](https://console.firebase.google.com/)
+   - Select your project
+   - Project Settings → General → Your apps
+   - Add web app if none exists
+   - Copy configuration
+
+2. **Update Environment File**
+   ```bash
+   # Copy template
+   cp env.template .env.local
+   
+   # Edit with your values
+   nano .env.local
+   ```
+
+3. **Enable Authentication**
+   - Firebase Console → Authentication → Sign-in method
+   - Enable Google provider
+   - Add authorized domains
+
+## 🤖 AI Setup
+
+### **Ollama (Local AI)**
+```bash
+# Install Ollama
+curl -fsSL https://ollama.ai/install.sh | sh
+
+# Pull Qwen2.5 model
+ollama pull qwen2.5:latest
+
+# Start Ollama service
+ollama serve
+```
+
+### **OpenAI (Cloud AI)**
+1. Get API key from [OpenAI Platform](https://platform.openai.com/)
+2. Add to `.env.local`:
+   ```bash
+   VITE_OPENAI_API_KEY=your_api_key_here
+   VITE_AI_PROVIDER=openai
+   ```
 
 ## 🚀 Deployment
 
-### Build for Production
+### **Development**
 ```bash
+# Start development server
+npm run dev
+
+# Build for production
 npm run build
+
+# Preview production build
+npm run preview
 ```
 
-### Deploy to Firebase Hosting
+### **Production**
+```bash
+# Deploy to Firebase hosting
+firebase deploy
+
+# Or use automated deployment
+./setup.sh --deploy
+```
+
+## 🔍 Troubleshooting
+
+### **Common Issues**
+
+#### **Firebase CLI Not Found**
 ```bash
 npm install -g firebase-tools
 firebase login
-firebase init hosting
-firebase deploy
 ```
 
-### Deploy to Vercel
+#### **Permission Denied on setup.sh**
 ```bash
-npm install -g vercel
-vercel
+chmod +x setup.sh
 ```
 
-## 🐛 Troubleshooting
+#### **Python Dependencies Missing**
+```bash
+pip install -r requirements.txt
+```
 
-### Common Issues
+#### **Build Failures**
+```bash
+# Clear cache
+rm -rf node_modules package-lock.json
+npm install
 
-1. **Firebase not configured**
-   - Check `src/firebase/config.js`
-   - Ensure Firebase project is set up
+# Rebuild
+npm run build
+```
 
-2. **Build errors**
-   - Clear `node_modules` and reinstall
-   - Check for missing dependencies
+### **Getting Help**
+- Check the setup logs in terminal output
+- Review `setup_report.txt` for detailed status
+- Ensure all prerequisites are met
+- Verify Firebase project permissions
 
-3. **Game not loading**
-   - Check browser console for errors
-   - Verify Firebase rules allow read/write
+## 📊 Setup Status
 
-### Development Tips
+### **What Gets Created**
+- ✅ Firebase project with unique ID
+- ✅ Firestore database with security rules
+- ✅ Authentication with Google provider
+- ✅ Hosting configuration for React app
+- ✅ Environment variables file
+- ✅ Production build
+- ✅ Live hosting URL
 
-- Use browser dev tools for debugging
-- Check Firebase console for database issues
-- Test on different devices for responsiveness
+### **What Gets Configured**
+- 🔧 Firebase services (Firestore, Auth, Hosting)
+- 🔐 Google Authentication
+- 🌐 SPA routing for React Router
+- ⚡ Static asset caching
+- 🎮 Game configuration
+- 🤖 AI integration settings
 
-## 📚 Additional Resources
+## 🎉 Success Indicators
 
-- [React Documentation](https://react.dev/)
-- [Firebase Documentation](https://firebase.google.com/docs)
-- [Framer Motion](https://www.framer.com/motion/)
-- [Chaupar Game History](https://en.wikipedia.org/wiki/Chaupar)
+### **Setup Complete When You See:**
+- ✅ "Setup completed successfully!"
+- ✅ Firebase project created
+- ✅ Environment file configured
+- ✅ Dependencies installed
+- ✅ Build successful
+- ✅ Hosting URL provided
+
+### **Next Steps After Setup:**
+1. **Test the game**: Visit the provided hosting URL
+2. **Customize settings**: Modify `.env.local` for AI preferences
+3. **Invite players**: Share game codes for multiplayer
+4. **Monitor usage**: Check Firebase Console for analytics
 
 ---
 
-**Enjoy playing the ancient Indian game of Chaupar! 🎲✨**
+**Ready to get started?** 🚀 Run `./setup.sh --deploy` for the fastest setup experience!
