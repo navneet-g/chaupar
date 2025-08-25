@@ -1,147 +1,64 @@
-import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { motion } from 'framer-motion';
-import { Crown, Square, Users, Home, Info, Copy, X } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { useAuth } from '../contexts/AuthContext';
+import { useChauparGame } from './GameState';
 import GameBoard from './GameBoard';
 import GameControls from './GameControls';
 import GameInfo from './GameInfo';
-import { createAIService } from '../services/aiService';
-import { useChauparGame } from './GameState';
-import { useAuth } from '../contexts/AuthContext';
-import './Game.css';
+import {
+  Box,
+  Button,
+  Typography,
+  Container,
+  AppBar,
+  Toolbar,
+  Chip,
+  IconButton,
+  Stack,
+  Paper,
+  Divider,
+  CircularProgress,
+  Drawer,
+  List,
+  ListItem,
+  ListItemIcon,
+  ListItemText,
+  ListItemButton
+} from '@mui/material';
+import {
+  Home as HomeIcon,
+  Share as ShareIcon,
+  Settings as SettingsIcon,
+  Refresh as RefreshIcon,
+  Group as GroupIcon,
+  SmartToy as AIIcon,
+  Menu as MenuIcon,
+  Book as BookIcon,
+  Help as HelpIcon,
+  Logout as LogoutIcon,
+  Close as XIcon
+} from '@mui/icons-material';
 
-const Game = ({ gameState: initialGameState, setGameState }) => {
+const Game = () => {
   const { gameId } = useParams();
   const navigate = useNavigate();
-  const { user, isAuthenticated } = useAuth();
-  const [currentGame, setCurrentGame] = useState(initialGameState);
-  const [showInfo, setShowInfo] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState(null);
+  const { user, isAnonymous, signOutUser } = useAuth();
   
-  // Use proper Chaupar game state management
+  const [currentGame, setCurrentGame] = useState(null);
+  const [gameInstance, setGameInstance] = useState(null);
+  const [error, setError] = useState(null);
+  const [showSettings, setShowSettings] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
+
   const {
     gameState,
-    gameInstance,
-    initializeGame,
-    throwCowries,
+    initializeGame: initializeGameCallback,
+    rollDice,
     makeMove,
-    getAvailableMoves,
-    endTurn,
-    checkGameOver
+    isLoading: gameLoading,
+    error: gameError
   } = useChauparGame();
-
-  // Memoize game initialization
-  const initializeGameCallback = useCallback((mode, options = {}) => {
-    try {
-      setIsLoading(true);
-      setError(null);
-      initializeGame(mode, options);
-    } catch (err) {
-      setError(err.message);
-      console.error('Game initialization failed:', err);
-    } finally {
-      setIsLoading(false);
-    }
-  }, [initializeGame]);
-
-  // Memoize AI turn handler
-  const handleAITurn = useCallback(async (throwResult) => {
-    if (!gameState || gameState.currentPlayer !== 1) return;
-    
-    const aiPlayer = currentGame?.players?.[1];
-    if (!aiPlayer?.isAI) return;
-
-    // Create AI service for this player
-    const aiService = createAIService(aiPlayer.aiProvider || 'ollama');
-    
-    // Simulate AI thinking time
-    setTimeout(async () => {
-      try {
-        // Get available moves for AI
-        const availableMoves = getAvailableMoves(1);
-        
-        if (availableMoves.length === 0) {
-          // No moves available, end turn
-          endTurn();
-          return;
-        }
-
-        // Generate AI move with proper game state
-        const aiMove = await aiService.generateMove(
-          { 
-            board: { 1: { pieces: gameState.players[1].pieces } },
-            players: gameState.players,
-            currentPlayer: gameState.currentPlayer,
-            diceValue: throwResult.score
-          },
-          1,
-          aiPlayer.skillLevel
-        );
-
-        console.log(`AI move:`, aiMove);
-        
-        // Execute the AI move
-        if (aiMove.type !== 'pass' && aiMove.pieceIndex !== undefined) {
-          const success = makeMove(1, aiMove.pieceIndex);
-          if (success) {
-            // Check for game over
-            const gameOver = checkGameOver();
-            if (!gameOver.gameOver) {
-              endTurn();
-            }
-          } else {
-            endTurn(); // Invalid move, just end turn
-          }
-        } else {
-          endTurn(); // AI passed
-        }
-      } catch (error) {
-        console.error('AI move failed:', error);
-        setError('AI move failed. Please try again.');
-        // Fallback: just end turn
-        endTurn();
-      }
-    }, 1000 + Math.random() * 1000); // Random delay between 1-2 seconds
-  }, [gameState, currentGame?.players, getAvailableMoves, makeMove, checkGameOver, endTurn]);
-
-  // Memoize roll dice function
-  const rollDice = useCallback(async () => {
-    console.log('rollDice called', { 
-      gameInstance: !!gameInstance, 
-      currentPlayer: gameState?.currentPlayer, 
-      gameStatus: gameState?.gameStatus,
-      canRoll: gameState?.currentPlayer === 0 && gameState?.gameStatus === 'playing'
-    });
-    
-    if (!gameInstance) {
-      console.log('No game instance, cannot roll dice');
-      return;
-    }
-    
-    try {
-      setIsLoading(true);
-      setError(null);
-      
-      console.log('Throwing cowries...');
-      // Use proper Chaupar cowrie throw
-      const throwResult = throwCowries();
-      console.log('Throw result:', throwResult);
-      
-      if (throwResult) {
-        // Check if it's AI turn and handle accordingly
-        if (currentGame?.mode === 'ai' && gameState?.currentPlayer === 1) {
-          console.log('AI turn detected, handling AI move...');
-          await handleAITurn(throwResult);
-        }
-      }
-    } catch (err) {
-      console.error('Dice roll failed:', err);
-      setError(err.message);
-    } finally {
-      setIsLoading(false);
-    }
-  }, [gameInstance, throwCowries, currentGame?.mode, gameState?.currentPlayer, handleAITurn]);
 
   // Initialize game when component mounts or game changes
   useEffect(() => {
@@ -155,211 +72,518 @@ const Game = ({ gameState: initialGameState, setGameState }) => {
         initializeGameCallback('multiplayer');
       }
     }
-  }, [gameId, currentGame, gameInstance, initializeGameCallback]);
+  }, [currentGame, gameInstance, initializeGameCallback]);
 
-  // Memoize end turn handler
-  const handleEndTurn = useCallback(() => {
+  // Handle game creation/joining
+  useEffect(() => {
+    if (gameId && !currentGame) {
+      // For demo purposes, create a mock game
+      const mockGame = {
+        id: gameId,
+        mode: 'ai', // Default to AI for demo
+        players: [
+          {
+            id: user?.uid || 'guest',
+            name: user?.displayName || 'Guest Player',
+            email: user?.email || 'guest@chaupar.com',
+            isAnonymous: user?.isAnonymous || true
+          }
+        ],
+        skillLevel: 'intermediate',
+        status: 'playing',
+        createdAt: new Date().toISOString()
+      };
+      setCurrentGame(mockGame);
+    }
+  }, [gameId, currentGame, user]);
+
+  const handleRollDice = useCallback(async () => {
+    if (!gameInstance) {
+      console.log('No game instance available');
+      return;
+    }
+    
+    console.log('Rolling dice...');
+    try {
+      await rollDice();
+    } catch (error) {
+      console.error('Error rolling dice:', error);
+      setError('Failed to roll dice. Please try again.');
+    }
+  }, [gameInstance, rollDice]);
+
+  const handleMove = useCallback(async (fromSquare, toSquare) => {
     if (!gameInstance) return;
     
     try {
-      // Use proper game state end turn
-      endTurn();
-      
-      // If it's now the AI's turn, automatically trigger AI move after a short delay
-      if (currentGame?.mode === 'ai' && gameState?.currentPlayer === 1) {
-        setTimeout(() => {
-          rollDice(); // This will trigger the AI turn
-        }, 500);
-      }
-    } catch (err) {
-      setError(err.message);
-      console.error('End turn failed:', err);
+      await makeMove(fromSquare, toSquare);
+    } catch (error) {
+      console.error('Error making move:', error);
+      setError('Failed to make move. Please try again.');
     }
-  }, [gameInstance, endTurn, currentGame?.mode, gameState?.currentPlayer, rollDice]);
+  }, [gameInstance, makeMove]);
 
-  // Copy error to clipboard function
-  const copyErrorToClipboard = useCallback(async (errorText) => {
+  const handleNewGame = useCallback(() => {
+    setCurrentGame(null);
+    setGameInstance(null);
+    setError(null);
+    navigate('/');
+  }, [navigate]);
+
+  const handleShareGame = useCallback(async () => {
     try {
-      const errorInfo = `Chaupar Game Error:
-Error: ${errorText}
-URL: ${window.location.href}
-User Agent: ${navigator.userAgent}
-Timestamp: ${new Date().toISOString()}`;
-      
-      await navigator.clipboard.writeText(errorInfo);
-      // Add visual feedback that copy was successful
-      const button = document.querySelector(".copy-error-btn");
-      if (button) {
-        const originalText = button.textContent;
-        button.textContent = "Copied!";
-        setTimeout(() => {
-          button.textContent = originalText;
-        }, 2000);
-      }
-    } catch (err) {
-      console.error("Failed to copy error to clipboard:", err);
-      // Fallback: select the error text
-      const errorElement = document.querySelector(".game-error p");
-      if (errorElement) {
-        const range = document.createRange();
-        range.selectNode(errorElement);
-        window.getSelection().removeAllRanges();
-        window.getSelection().addRange(range);
-      }
-    }
-  }, []);
-  // Memoize copy game code function
-  const copyGameCode = useCallback(async () => {
-    try {
-      await navigator.clipboard.writeText(gameId);
-      // Could add a toast notification here
-    } catch (err) {
-      console.error('Failed to copy game code:', err);
-      setError('Failed to copy game code');
+      await navigator.share({
+        title: 'Join my Chaupar game!',
+        text: `I'm playing Chaupar! Join me with code: ${gameId}`,
+        url: window.location.href
+      });
+    } catch (error) {
+      // Fallback to clipboard
+      await navigator.clipboard.writeText(window.location.href);
     }
   }, [gameId]);
 
-  // Memoize available moves
-  const availableMoves = useMemo(() => {
-    if (!gameState) return [];
-    return getAvailableMoves(gameState.currentPlayer);
-  }, [gameState, getAvailableMoves]);
+  const handleSignOut = async () => {
+    try {
+      await signOutUser();
+      navigate('/');
+    } catch (error) {
+      console.error('Sign out failed:', error);
+    }
+  };
 
-  // Show loading state
-  if (isLoading) {
-    return (
-      <div className="game-loading">
-        <div className="loading-spinner" />
-        <p>Loading game...</p>
-      </div>
-    );
-  }
+  const handleTutorial = () => {
+    navigate('/tutorial');
+    setMenuOpen(false);
+  };
 
-  // Show error state with copy functionality
+  const handleHelp = () => {
+    navigate('/help');
+    setMenuOpen(false);
+  };
+
+  const canRoll = gameState?.currentPlayer === 0 && gameState?.gameStatus === 'playing' && !gameLoading;
+
   if (error) {
     return (
-      <div className="game-error">
-        <div className="error-content">
-          <h2>Game Error</h2>
-          <p>{error}</p>
-          <div className="error-actions">
-            <button onClick={() => setError(null)} className="btn btn-primary">
-              <X size={16} />
-              Dismiss
-            </button>
-            <button 
-              onClick={() => copyErrorToClipboard(error)} 
-              className="btn btn-secondary copy-error-btn"
+      <Container maxWidth="md" sx={{ 
+        minHeight: '100vh', 
+        display: 'flex', 
+        flexDirection: 'column', 
+        justifyContent: 'center',
+        alignItems: 'center',
+        background: 'linear-gradient(135deg, #1a0f0a 0%, #2d1b0f 25%, #4a2c2a 50%, #8b4513 75%, #a0522d 100%)'
+      }}>
+        <Paper elevation={3} sx={{ 
+          p: 4, 
+          textAlign: 'center',
+          background: 'linear-gradient(135deg, #8b4513 0%, #a0522d 100%)',
+          border: '2px solid #daa520'
+        }}>
+          <Typography variant="h5" sx={{ mb: 2, color: '#ffffff' }}>
+            Game Error
+          </Typography>
+          <Typography variant="body1" sx={{ mb: 3, color: '#ffffff' }}>
+            {error}
+          </Typography>
+          <Stack direction="row" spacing={2}>
+            <Button
+              variant="contained"
+              onClick={() => setError(null)}
+              sx={{
+                background: 'linear-gradient(135deg, #daa520 0%, #ffd700 100%)',
+                color: '#2c1810',
+                '&:hover': {
+                  background: 'linear-gradient(135deg, #b8860b 0%, #daa520 100%)'
+                }
+              }}
             >
-              <Copy size={16} />
-              Copy Error
-            </button>
-          </div>
-        </div>
-      </div>
+              Try Again
+            </Button>
+            <Button
+              variant="outlined"
+              onClick={handleNewGame}
+              sx={{
+                color: '#ffffff',
+                borderColor: '#ffffff',
+                '&:hover': {
+                  backgroundColor: '#ffffff',
+                  color: '#2c1810'
+                }
+              }}
+            >
+              New Game
+            </Button>
+          </Stack>
+        </Paper>
+      </Container>
     );
   }
 
-  if (!currentGame) {
-    return <div>Loading...</div>;
+  if (!currentGame || gameLoading) {
+    return (
+      <Container maxWidth="md" sx={{ 
+        minHeight: '100vh', 
+        display: 'flex', 
+        flexDirection: 'column', 
+        justifyContent: 'center',
+        alignItems: 'center',
+        background: 'linear-gradient(135deg, #1a0f0a 0%, #2d1b0f 25%, #4a2c2a 50%, #8b4513 75%, #a0522d 100%)'
+      }}>
+        <Box sx={{ textAlign: 'center', color: '#ffffff' }}>
+          <CircularProgress size={60} sx={{ color: '#ffd700', mb: 2 }} />
+          <Typography variant="h5" sx={{ mb: 1, color: '#ffd700' }}>
+            Loading Game...
+          </Typography>
+          <Typography variant="body1">
+            Setting up your Chaupar experience
+          </Typography>
+        </Box>
+      </Container>
+    );
   }
 
   return (
-    <div className="game">
-      <motion.div 
-        className="game-header"
-        initial={{ opacity: 0, y: -20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5 }}
-      >
-        <div className="header-left">
-          <button className="btn-icon" onClick={() => navigate('/')}>
-            <Home size={20} />
-          </button>
-          <h1>Chaupar</h1>
-        </div>
-        
-        <div className="game-info">
-          <div className="game-code">
-            <span>Game Code: </span>
-            <code onClick={copyGameCode} title="Click to copy">
-              {gameId}
-            </code>
-          </div>
-          <div className="game-mode">
-            <Users size={16} />
-            {currentGame.mode === 'ai' ? 'AI Game' : 'Multiplayer'}
-          </div>
-        </div>
-
-        <div className="header-right">
-          <button 
-            className="btn-icon"
-            onClick={() => setShowInfo(!showInfo)}
-          >
-            <Info size={20} />
-          </button>
-        </div>
-      </motion.div>
-
-      <div className="game-content">
-        <div className="game-main">
-          <GameBoard 
-            currentPlayer={gameState?.currentPlayer || 0}
-            diceValue={gameState?.lastThrow?.score || null}
-            gameStatus={gameState?.gameStatus || 'waiting'}
-            gameState={gameState}
-          />
+    <Box sx={{ 
+      minHeight: '100vh',
+      background: 'linear-gradient(135deg, #1a0f0a 0%, #2d1b0f 25%, #4a2c2a 50%, #8b4513 75%, #a0522d 100%)',
+      color: '#ffffff'
+    }}>
+      {/* Game Header */}
+      <AppBar position="static" sx={{ 
+        background: 'linear-gradient(135deg, #8b4513 0%, #a0522d 100%)',
+        borderBottom: '2px solid #daa520'
+      }}>
+        <Toolbar sx={{ justifyContent: 'space-between' }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+            <IconButton
+              color="inherit"
+              onClick={handleNewGame}
+              sx={{ color: '#ffffff' }}
+            >
+              <HomeIcon />
+            </IconButton>
+            
+            <Divider orientation="vertical" flexItem sx={{ backgroundColor: '#daa520' }} />
+            
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+              {currentGame.mode === 'ai' ? (
+                <AIIcon sx={{ color: '#ffd700' }} />
+              ) : (
+                <GroupIcon sx={{ color: '#ffd700' }} />
+              )}
+              <Typography variant="body2" sx={{ color: '#ffffff' }}>
+                {currentGame.mode === 'ai' ? 'AI Game' : 'Multiplayer'}
+              </Typography>
+            </Box>
+            
+            {currentGame.skillLevel && (
+              <Chip 
+                label={currentGame.skillLevel} 
+                size="small"
+                sx={{ 
+                  backgroundColor: 'rgba(255, 255, 255, 0.2)',
+                  color: '#ffffff',
+                  border: '1px solid #ffffff'
+                }}
+              />
+            )}
+          </Box>
           
-          <GameControls
-            onRollDice={rollDice}
-            onEndTurn={handleEndTurn}
-            diceValue={gameState?.lastThrow?.score || null}
-            currentPlayer={gameState?.currentPlayer || 0}
-            gameStatus={gameState?.gameStatus || 'waiting'}
-            canRoll={gameState?.currentPlayer === 0 && gameState?.gameStatus === 'playing' && !isLoading}
-            availableMoves={availableMoves}
-            isLoading={isLoading}
-          />
-        </div>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+            <IconButton
+              color="inherit"
+              onClick={handleShareGame}
+              sx={{ color: '#ffffff' }}
+            >
+              <ShareIcon />
+            </IconButton>
+            
+            <IconButton
+              color="inherit"
+              onClick={() => setMenuOpen(true)}
+              sx={{ color: '#ffffff' }}
+            >
+              <MenuIcon />
+            </IconButton>
+          </Box>
+        </Toolbar>
+      </AppBar>
 
-        {showInfo && (
-          <motion.div 
-            className="game-sidebar"
-            initial={{ opacity: 0, x: 300 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: 300 }}
-            transition={{ duration: 0.3 }}
-          >
+      {/* Hamburger Menu */}
+      <Drawer
+        anchor="right"
+        open={menuOpen}
+        onClose={() => setMenuOpen(false)}
+        PaperProps={{
+          sx: {
+            background: 'linear-gradient(135deg, #8b4513 0%, #a0522d 100%)',
+            borderLeft: '2px solid #daa520',
+            width: 280
+          }
+        }}
+      >
+        <Box sx={{ p: 2 }}>
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+            <Typography variant="h6" sx={{ color: '#ffffff', fontWeight: 700 }}>
+              Game Menu
+            </Typography>
+                          <IconButton
+                onClick={() => setMenuOpen(false)}
+                sx={{ color: '#ffffff' }}
+              >
+                <XIcon />
+              </IconButton>
+          </Box>
+          
+          <Divider sx={{ backgroundColor: '#daa520', mb: 2 }} />
+          
+          <List>
+            {/* Game Actions */}
+            <ListItem disablePadding sx={{ mb: 1 }}>
+              <ListItemButton
+                onClick={() => {
+                  setShowSettings(!showSettings);
+                  setMenuOpen(false);
+                }}
+                sx={{
+                  background: 'rgba(255, 255, 255, 0.1)',
+                  borderRadius: 1,
+                  '&:hover': {
+                    background: 'rgba(255, 255, 255, 0.2)'
+                  }
+                }}
+              >
+                <ListItemIcon>
+                  <SettingsIcon sx={{ color: '#ffd700' }} />
+                </ListItemIcon>
+                <ListItemText 
+                  primary="Game Settings" 
+                  sx={{ color: '#ffffff' }}
+                />
+              </ListItemButton>
+            </ListItem>
+
+            <ListItem disablePadding sx={{ mb: 1 }}>
+              <ListItemButton
+                onClick={() => window.location.reload()}
+                sx={{
+                  background: 'rgba(255, 255, 255, 0.1)',
+                  borderRadius: 1,
+                  '&:hover': {
+                    background: 'rgba(255, 255, 255, 0.2)'
+                  }
+                }}
+              >
+                <ListItemIcon>
+                  <RefreshIcon sx={{ color: '#ffd700' }} />
+                </ListItemIcon>
+                <ListItemText 
+                  primary="Restart Game" 
+                  sx={{ color: '#ffffff' }}
+                />
+              </ListItemButton>
+            </ListItem>
+
+            <ListItem disablePadding sx={{ mb: 1 }}>
+              <ListItemButton
+                onClick={handleNewGame}
+                sx={{
+                  background: 'rgba(255, 255, 255, 0.1)',
+                  borderRadius: 1,
+                  '&:hover': {
+                    background: 'rgba(255, 255, 255, 0.2)'
+                  }
+                }}
+              >
+                <ListItemIcon>
+                  <HomeIcon sx={{ color: '#ffd700' }} />
+                </ListItemIcon>
+                <ListItemText 
+                  primary="New Game" 
+                  sx={{ color: '#ffffff' }}
+                />
+              </ListItemButton>
+            </ListItem>
+
+            {/* Navigation */}
+            <ListItem disablePadding sx={{ mb: 1 }}>
+              <ListItemButton
+                onClick={handleTutorial}
+                sx={{
+                  background: 'rgba(255, 255, 255, 0.1)',
+                  borderRadius: 1,
+                  '&:hover': {
+                    background: 'rgba(255, 255, 255, 0.2)'
+                  }
+                }}
+              >
+                <ListItemIcon>
+                  <BookIcon sx={{ color: '#ffd700' }} />
+                </ListItemIcon>
+                <ListItemText 
+                  primary="Tutorial" 
+                  sx={{ color: '#ffffff' }}
+                />
+              </ListItemButton>
+            </ListItem>
+
+            <ListItem disablePadding sx={{ mb: 1 }}>
+              <ListItemButton
+                onClick={handleHelp}
+                sx={{
+                  background: 'rgba(255, 255, 255, 0.1)',
+                  borderRadius: 1,
+                  '&:hover': {
+                    background: 'rgba(255, 255, 255, 0.2)'
+                  }
+                }}
+              >
+                <ListItemIcon>
+                  <HelpIcon sx={{ color: '#ffd700' }} />
+                </ListItemIcon>
+                <ListItemText 
+                  primary="Help & Rules" 
+                  sx={{ color: '#ffffff' }}
+                />
+              </ListItemButton>
+            </ListItem>
+
+            {/* User Actions */}
+            <ListItem disablePadding sx={{ mb: 1 }}>
+              <ListItemButton
+                onClick={handleSignOut}
+                sx={{
+                  background: 'rgba(255, 255, 255, 0.1)',
+                  borderRadius: 1,
+                  '&:hover': {
+                    background: 'rgba(255, 255, 255, 0.2)'
+                  }
+                }}
+              >
+                <ListItemIcon>
+                  <LogoutIcon sx={{ color: '#ffd700' }} />
+                </ListItemIcon>
+                <ListItemText 
+                  primary="Sign Out" 
+                  sx={{ color: '#ffffff' }}
+                />
+              </ListItemButton>
+            </ListItem>
+          </List>
+        </Box>
+      </Drawer>
+
+      {/* Main Game Content */}
+      <Container maxWidth="lg" sx={{ py: 2 }}>
+        <Stack spacing={2}>
+          {/* Game Info */}
+          <Paper elevation={3} sx={{ 
+            p: 2,
+            background: 'linear-gradient(135deg, #654321 0%, #8b4513 100%)',
+            border: '1px solid #daa520'
+          }}>
             <GameInfo 
-              game={currentGame}
-              currentPlayer={gameState?.currentPlayer || 0}
-              diceValue={gameState?.lastThrow?.score || null}
+              gameState={gameState}
+              currentGame={currentGame}
+              user={user}
             />
+          </Paper>
+
+          {/* Game Board */}
+          <Paper elevation={3} sx={{ 
+            p: 2,
+            background: 'linear-gradient(135deg, #654321 0%, #8b4513 100%)',
+            border: '1px solid #daa520'
+          }}>
+            <GameBoard 
+              gameState={gameState}
+              onSquareClick={handleMove}
+              currentPlayer={gameState?.currentPlayer}
+            />
+          </Paper>
+
+          {/* Game Controls */}
+          <Paper elevation={3} sx={{ 
+            p: 2,
+            background: 'linear-gradient(135deg, #654321 0%, #8b4513 100%)',
+            border: '1px solid #daa520'
+          }}>
+            <GameControls 
+              onRollDice={handleRollDice}
+              canRoll={canRoll}
+              isLoading={gameLoading}
+              gameState={gameState}
+            />
+          </Paper>
+        </Stack>
+      </Container>
+
+      {/* Settings Panel */}
+      <AnimatePresence>
+        {showSettings && (
+          <motion.div
+            initial={{ opacity: 0, x: '100%' }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: '100%' }}
+            style={{
+              position: 'fixed',
+              top: 0,
+              right: 0,
+              width: '300px',
+              height: '100vh',
+              zIndex: 1000
+            }}
+          >
+            <Paper elevation={8} sx={{ 
+              height: '100%',
+              background: 'linear-gradient(135deg, #8b4513 0%, #a0522d 100%)',
+              borderLeft: '2px solid #daa520'
+            }}>
+              <Box sx={{ p: 2 }}>
+                <Typography variant="h6" sx={{ mb: 2, color: '#ffffff' }}>
+                  Game Settings
+                </Typography>
+                
+                <Stack spacing={2}>
+                  <Button
+                    variant="outlined"
+                    startIcon={<RefreshIcon />}
+                    onClick={() => window.location.reload()}
+                    sx={{
+                      color: '#ffffff',
+                      borderColor: '#ffffff',
+                      '&:hover': {
+                        backgroundColor: '#ffffff',
+                        color: '#2c1810'
+                      }
+                    }}
+                  >
+                    Restart Game
+                  </Button>
+                  
+                  <Button
+                    variant="outlined"
+                    startIcon={<HomeIcon />}
+                    onClick={handleNewGame}
+                    sx={{
+                      color: '#ffffff',
+                      borderColor: '#ffffff',
+                      '&:hover': {
+                        backgroundColor: '#ffffff',
+                        color: '#2c1810'
+                      }
+                    }}
+                  >
+                    New Game
+                  </Button>
+                </Stack>
+              </Box>
+            </Paper>
           </motion.div>
         )}
-      </div>
-
-      {currentGame.mode === 'multiplayer' && currentGame.status === 'waiting' && (
-        <motion.div 
-          className="waiting-players"
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.3 }}
-        >
-          <h3>Waiting for players to join...</h3>
-          <p>Share the game code: <strong>{gameId}</strong></p>
-          <div className="player-list">
-            {currentGame.players.map(player => (
-              <div key={player.id} className="player-item">
-                <Crown size={16} />
-                {player.name}
-              </div>
-            ))}
-          </div>
-        </motion.div>
-      )}
-    </div>
+      </AnimatePresence>
+    </Box>
   );
 };
 
